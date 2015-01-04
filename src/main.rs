@@ -4,14 +4,14 @@ mod piece;
 
 // TODO make these real types
 type Board = int;
-type Bag = int;
-type Move = int;
+type Bag = Vec<piece::Piece>;
+type Move = uint;
 
 
 
 #[derive(Show, Clone)]
 struct PlayerState {
-  bag: Vec<piece::Piece>,
+  bag: Bag,
   score: int,
 }
 
@@ -34,12 +34,11 @@ impl GameState {
   // factory method
   fn new(num_players: int) -> GameState {
     let initial_bag = piece::make_bag();
-    println!("{}", initial_bag);
 
     GameState {
       board: 0,
       players: range(0, num_players).map(|_| PlayerState::new()).collect(),
-      bag: 30,
+      bag: initial_bag,
       turn: 0,
     }
   }
@@ -57,14 +56,17 @@ impl GameState {
 
     // return moves ( maybe + SwapPieces)
 
-    range(0, self.bag).collect()
+    range(0, self.bag.len()).collect()
   }
 
   fn apply_move(&self, chosen_move: Move) -> GameState {
+    let mut new_bag = self.bag.clone();
+    new_bag.pop();
+
     GameState {
       board: self.board,
       players: self.players.clone(),
-      bag: self.bag - 1,
+      bag: new_bag,
       turn: (self.turn + 1) % self.players.len()
     }
   }

@@ -31,23 +31,16 @@ impl Shape {
   }
 }
 
-fn combinations() -> Vec<Piece> {
+pub fn make_bag() -> Vec<Piece> {
   let mut pieces = Vec::with_capacity(36);
-
   for colour in Colour::all().iter() {
     for shape in Shape::all().iter() {
       pieces.push(Piece(colour.clone(), shape.clone())) // TODO bad cloning
     }
   }
 
-  return pieces
-}
-
-pub fn make_bag() -> Vec<Piece> {
   let mut full_bag = Vec::with_capacity(108);
-  let pieces = combinations();
-
-  for i in [1,2,3].iter() {
+  for _ in [1,2,3].iter() {
     full_bag.push_all(pieces.as_slice())
   }
 
