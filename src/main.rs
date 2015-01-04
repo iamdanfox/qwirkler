@@ -43,6 +43,17 @@ impl GameState {
 
   // instance method
   fn generate_moves(&self) -> Vec<Move> {
+
+    // initialise moves = []
+
+    // figure out possible start squares (and directions).
+    // FOR EACH POSSIBLE START CONFIG:
+      // iterate upwards through permutations and combinations of current players' bag (using a Queue)
+        // ie start with [p1], [p2], [p3] then if [p1] works try [p1,px], [p1,py], [p1,pz]...
+        // if the board allows the move, add it to our list of moves
+
+    // return moves ( maybe + SwapPieces)
+
     range(0, self.bag).collect()
   }
 
