@@ -33,6 +33,9 @@ struct GameState {
 impl GameState {
   // factory method
   fn new(num_players: int) -> GameState {
+    let initial_bag = piece::make_bag();
+    println!("{}", initial_bag);
+
     GameState {
       board: 0,
       players: range(0, num_players).map(|_| PlayerState::new()).collect(),
@@ -70,8 +73,6 @@ impl GameState {
 
 
 fn main() {
-
-  println!("{}", piece::combinations());
 
   let mut game_state = GameState::new(2);
 
