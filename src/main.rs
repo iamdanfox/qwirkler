@@ -71,6 +71,8 @@ impl GameState {
 
 fn main() {
 
+  println!("{}", piece::combinations());
+
   let mut game_state = GameState::new(2);
 
   loop {
