@@ -7,7 +7,6 @@ mod board;
 
 
 
-
 fn main() {
 
   let mut game_state = GameState::new(2);
@@ -36,8 +35,8 @@ struct PlayerState {
 }
 
 impl PlayerState {
-  fn new() -> PlayerState {
-    PlayerState { bag: vec![], score: 0 }
+  fn new(bag: Bag) -> PlayerState {
+    PlayerState { bag: bag, score: 0 }
   }
 }
 
@@ -56,11 +55,20 @@ struct GameState {
 impl GameState {
   // factory method
   fn new(num_players: int) -> GameState {
-    let initial_bag = piece::make_bag();
+    let mut initial_bag = piece::make_bag();
+
+    let mut players = vec![];
+
+    for _ in range(0, num_players) {
+      let empty:Vec<uint> = vec![];
+      let (player_bag, main_bag) = piece::resupply_player(empty, initial_bag);
+      initial_bag = main_bag;
+      players.push(PlayerState::new(player_bag));
+    }
 
     GameState {
       board: Board::new(),
-      players: range(0, num_players).map(|_| PlayerState::new()).collect(),
+      players: players,
       bag: initial_bag,
       turn: 0,
     }
@@ -88,9 +96,24 @@ impl GameState {
   fn apply_move(&self, chosen_move: Move) -> GameState {
     let mut new_bag = self.bag.clone();
     new_bag.pop();
-    println!("chosen move {}", chosen_move);
+
 
     // TODO: real code
+    match chosen_move {
+      Move::SwapPieces => {
+        // change the current playerState (based on self.turn)
+        // return player's pieces to the mainbag
+        // take 6 random pieces out of the mainbag (if possible)
+        // advance turn
+        println!("swappieces");
+      },
+      Move::PlacePieces(_sq, _dir, _pieces) => {
+        // remove pieces from the player's bag.
+        // resupply players bag from the main bag
+        // let new_board = board.put(sq, dir, pieces);
+        println!("placespieces");
+      }
+    };
 
 
     GameState {
