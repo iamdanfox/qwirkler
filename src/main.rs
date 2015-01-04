@@ -1,8 +1,21 @@
 // TODO make these real types
 type Board = int;
-type PlayerState = int;
 type Bag = int;
 type Move = int;
+type Piece = int;
+
+
+#[derive(Show, Clone)]
+struct PlayerState {
+  bag: Vec<Piece>,
+  score: int,
+}
+
+impl PlayerState {
+  fn new() -> PlayerState {
+    PlayerState { bag: vec![], score: 0 }
+  }
+}
 
 
 #[derive(Show)]
@@ -17,7 +30,12 @@ struct GameState {
 impl GameState {
   // factory method
   fn new(num_players: int) -> GameState {
-    GameState { board: 0, players: range(0, num_players).collect(), bag: 30, turn: 0 }
+    GameState {
+      board: 0,
+      players: range(0, num_players).map(|_| PlayerState::new()).collect(),
+      bag: 30,
+      turn: 0,
+    }
   }
 
   // instance method
