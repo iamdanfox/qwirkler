@@ -1,11 +1,33 @@
+use board::Board;
+use piece::Bag;
+
 // imports all the `pub` stuff from piece.rs
 mod piece;
-
+mod board;
 
 // TODO make these real types
-type Board = int;
-type Bag = Vec<piece::Piece>;
 type Move = uint;
+
+
+
+fn main() {
+
+  let mut game_state = GameState::new(2);
+
+  loop {
+    let moves = game_state.generate_moves();
+    if moves.len() > 0 {
+      println!("player {} turn", game_state.turn);
+      let chosen_move = moves[0]; // choses first move
+      game_state = game_state.apply_move(chosen_move);
+    } else {
+      break
+    }
+  }
+
+  println!("Game finished.")
+
+}
 
 
 
@@ -21,13 +43,16 @@ impl PlayerState {
   }
 }
 
-#[derive(Show)]
+
+
+// #[derive(Show)]
 struct GameState {
   board: Board,
-  players: Vec<PlayerState>, // TODO make this an array?
+  players: Vec<PlayerState>,
   bag: Bag,
   turn: uint,
 }
+
 
 
 impl GameState {
@@ -36,7 +61,7 @@ impl GameState {
     let initial_bag = piece::make_bag();
 
     GameState {
-      board: 0,
+      board: Board::new(),
       players: range(0, num_players).map(|_| PlayerState::new()).collect(),
       bag: initial_bag,
       turn: 0,
@@ -64,31 +89,10 @@ impl GameState {
     new_bag.pop();
 
     GameState {
-      board: self.board,
+      board: self.board.clone(),
       players: self.players.clone(),
       bag: new_bag,
       turn: (self.turn + 1) % self.players.len()
     }
   }
-}
-
-
-
-fn main() {
-
-  let mut game_state = GameState::new(2);
-
-  loop {
-    let moves = game_state.generate_moves();
-    if moves.len() > 0 {
-      println!("player {} turn", game_state.turn);
-      let chosen_move = moves[0]; // choses first move
-      game_state = game_state.apply_move(chosen_move);
-    } else {
-      break
-    }
-  }
-
-  println!("Game finished.")
-
 }
