@@ -1,5 +1,3 @@
-use std::iter::Range;
-
 // TODO make these real types
 type Board = int;
 type PlayerState = int;
@@ -7,19 +5,19 @@ type Bag = int;
 type Move = int;
 
 
-#[deriving(Show)]
+#[derive(Show)]
 struct GameState {
   board: Board,
-  players: Vec<PlayerState>,
+  players: Vec<PlayerState>, // TODO make this an array?
   bag: Bag,
   turn: uint,
 }
 
 
 impl GameState {
-  // kinda static constructor
-  fn new() -> GameState {
-    GameState { board: 0, players: vec![1,2], bag: 30, turn: 0 }
+  // factory method
+  fn new(num_players: int) -> GameState {
+    GameState { board: 0, players: range(0, num_players).collect(), bag: 30, turn: 0 }
   }
 
   // instance method
@@ -27,11 +25,11 @@ impl GameState {
     range(0, self.bag).collect()
   }
 
-  fn apply_move(&self, chosenMove: Move) -> GameState {
+  fn apply_move(&self, chosen_move: Move) -> GameState {
     GameState {
       board: self.board,
       players: self.players.clone(),
-      bag: self.bag,
+      bag: self.bag - 1,
       turn: (self.turn + 1) % self.players.len()
     }
   }
@@ -40,20 +38,20 @@ impl GameState {
 
 
 fn main() {
-  println!("Hello, world!");
 
-  let mut gameState = GameState::new();
+  let mut game_state = GameState::new(2);
 
   loop {
-    let moves = gameState.generate_moves();
+    let moves = game_state.generate_moves();
     if moves.len() > 0 {
-      println!("player {} turn", gameState.turn);
-      let chosenMove = moves[0]; // choses first move
-      gameState = gameState.apply_move(chosenMove);
+      println!("player {} turn", game_state.turn);
+      let chosen_move = moves[0]; // choses first move
+      game_state = game_state.apply_move(chosen_move);
     } else {
       break
     }
   }
 
+  println!("Game finished.")
 
 }
