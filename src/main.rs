@@ -1,13 +1,17 @@
+// imports all the `pub` stuff from piece.rs
+mod piece;
+
+
 // TODO make these real types
 type Board = int;
 type Bag = int;
 type Move = int;
-type Piece = int;
+
 
 
 #[derive(Show, Clone)]
 struct PlayerState {
-  bag: Vec<Piece>,
+  bag: Vec<piece::Piece>,
   score: int,
 }
 
@@ -16,7 +20,6 @@ impl PlayerState {
     PlayerState { bag: vec![], score: 0 }
   }
 }
-
 
 #[derive(Show)]
 struct GameState {
