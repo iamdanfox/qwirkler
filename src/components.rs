@@ -42,15 +42,6 @@ impl fmt::Show for Board {
   }
 }
 
-impl Clone for Board {
-  fn clone(&self) -> Board {
-    Board {
-      board: self.board,
-      perimeter: self.perimeter.clone()
-    }
-  }
-}
-
 impl Board {
   pub fn new() -> Board {
     let blank = piece::blank();
@@ -95,7 +86,6 @@ impl Board {
         }
       }
     }
-    // TODO de-duplicate result???
     if result.len() == 0 {
       return vec![ ((0,0), Direction::initial()) ]
     } else {
@@ -206,14 +196,12 @@ impl Board {
 
   pub fn put(&mut self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) -> Score {
     // compute the new array
-    // let mut new_array = self.board;
     let squares = direction.apply_all(start_sq, pieces.len());
     for (&(x,y),&piece) in squares.iter().zip(pieces.iter()) {
       self.board[(x+DIM) as uint][(y+DIM) as uint] = piece;
     }
 
     // compute the new perimeter
-    // let mut new_perimeter = self.perimeter.clone();
     for sq in squares.iter() {
       self.perimeter.remove(sq);
     }
@@ -233,13 +221,7 @@ impl Board {
       }
     }
 
-    // let new_board = Board {
-    //   board: new_array,
-    //   perimeter: perimeter,
-    // };
-    let score = self.compute_score(start_sq, direction, pieces);
-    // return (self, score)
-    return score
+    return self.compute_score(start_sq, direction, pieces);
   }
 
 }

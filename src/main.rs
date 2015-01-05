@@ -15,8 +15,8 @@ fn main() {
 
   loop {
     i = i + 1;
-    println!("\n\n{}\n", game_state.board);
-    println!("{}: player {} turn (score = {})", i, game_state.turn, game_state.players[game_state.turn].score);
+    // println!("\n\n{}\n", game_state.board);
+    // println!("{}: player {} turn (score = {})", i, game_state.turn, game_state.players[game_state.turn].score);
 
     let moves:Vec<(int, Move)> = game_state
       .generate_moves()
@@ -43,6 +43,7 @@ fn main() {
 
   println!("\n\n\n\nGame finished.");
 
+  println!("{}", game_state.board);
   let mut sum = 0;
   let mut i = 0;
   for player in game_state.players.iter() {
