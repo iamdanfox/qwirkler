@@ -17,13 +17,14 @@ fn main() {
   // let mut reader = io::stdin();
 
   loop {
+    i = i + 1;
+    println!("\n\n{}\n", game_state.board);
+    println!("{}: player {} turn", i, game_state.turn);
+
     let mut moves = game_state.generate_moves();
     match moves.pop() {
       None => break,
       Some(chosen_move) => {
-        i = i + 1;
-        println!("\n\n{}\n", game_state.board);
-        println!("{}: player {} turn", i, game_state.turn);
         game_state = game_state.apply_move(chosen_move);
       },
     }

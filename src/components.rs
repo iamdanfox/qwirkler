@@ -76,8 +76,11 @@ impl Direction {
 }
 
 
+
+const DIM:int = 40;
+const DIM_2:uint = (2*DIM) as uint;
 pub struct Board {
-  board: [[Piece; 50]; 50]
+  board: [[Piece; DIM_2]; DIM_2]
 }
 
 impl fmt::Show for Board {
@@ -104,7 +107,7 @@ impl fmt::Show for Board {
 impl Board {
   pub fn new() -> Board {
     let blank = piece::blank();
-    let mut new_board = [[blank; 50]; 50];
+    let mut new_board = [[blank; DIM_2]; DIM_2];
     // new_board[25][25] = 99;
     // new_board[26][26] = 11;
     Board { board: new_board }
@@ -117,8 +120,8 @@ impl Board {
     let mut min_y = int::MAX;
     let mut max_y = int::MIN;
 
-    for y in range(-25,25) {
-      for x in range(-25, 25) {
+    for y in range(-DIM,DIM) {
+      for x in range(-DIM, DIM) {
         if !piece::is_blank(self.get((x,y))) {
           if x < min_x { min_x = x; };
           if x > max_x { max_x = x; };
@@ -171,7 +174,7 @@ impl Board {
 
   pub fn get(&self, sq:Square) -> Piece {
     let (x,y) = sq;
-    return self.board[(x+25) as uint][(y+25) as uint];
+    return self.board[(x+DIM) as uint][(y+DIM) as uint];
   }
 
   pub fn allows_move(&self, m: &Move) -> bool {
@@ -271,7 +274,7 @@ impl Board {
     let squares = direction.apply_all(square, pieces.len());
     for (square,piece) in squares.iter().zip(pieces.iter()) {
       let (x,y) = *square;
-      new_board[(x+25) as uint][(y+25) as uint] = *piece;
+      new_board[(x+DIM) as uint][(y+DIM) as uint] = *piece;
     }
 
     Board { board: new_board }
