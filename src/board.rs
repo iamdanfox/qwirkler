@@ -3,7 +3,7 @@
 
 pub type Square = (uint,uint);
 
-#[derive(Show)]
+#[derive(Show, Clone)]
 pub enum Direction {
   U, D, L, R
 }
@@ -29,6 +29,14 @@ impl Board {
   pub fn new() -> Board {
     let new_board = [[0; 50]; 50];
     Board { board: new_board}
+  }
+
+  pub fn get_start_squares(&self) -> Vec<(Square, Direction)> {
+    return vec![((0,0), Direction::R)]
+  }
+
+  pub fn allows_move(&self) -> bool {
+    return true
   }
 
   // fn put(&self, square: Square, direction: Direction, pieces: Vec<Piece>) -> Board {
