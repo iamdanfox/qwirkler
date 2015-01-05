@@ -43,6 +43,22 @@ impl Direction {
     }
   }
 
+  fn opposite(&self) -> Direction {
+    match *self {
+      Direction::U => Direction::D,
+      Direction::D => Direction::U,
+      Direction::L => Direction::R,
+      Direction::R => Direction::L,
+    }
+  }
+
+  fn perpendiculars(&self) -> (Direction,Direction) {
+    match *self {
+      Direction::U | Direction::D => (Direction::L, Direction::R),
+      Direction::L | Direction::R => (Direction::U, Direction::D),
+    }
+  }
+
   fn apply_all(&self, sq: Square, len: uint) -> Vec<Square> {
     let mut squares = vec![];
     let mut last = sq;
@@ -72,7 +88,7 @@ impl Board {
     return vec![((0,0), Direction::R)]
   }
 
-  fn get(&self, sq:Square) -> Piece {
+  pub fn get(&self, sq:Square) -> Piece {
     let (x,y) = sq;
     return self.board[x+25][y+25];
   }
@@ -109,9 +125,26 @@ impl Board {
 
   fn get_newly_formed_lines(&self, start_sq:Square, direction:&Direction, pieces:&RingBuf<Piece>) -> Vec<RingBuf<Piece>> {
 
-    // TODO compute : mainline ++ perpendicular lines
+    // TODO compute : mainline ++ perpendicular lines.  Use .chain to join
 
     return vec![(*pieces).clone()]
+  }
+
+  fn pieces_in_direction(&self, direction: Direction, start: Square) -> Vec<Piece> {
+    let mut sq = direction.apply(start);
+    let mut pieces = vec![];
+    while !piece::is_blank(self.get(sq)) {
+      pieces.push(self.get(sq));
+      sq = direction.apply(sq);
+    }
+    return pieces;
+  }
+
+  fn perp_line(&self, main_direction: Direction, sq: Square, piece: Piece) -> Vec<Piece> {
+    let (d1,d2) = main_direction.perpendiculars();
+    let line1 = self.pieces_in_direction(d1, sq);
+    let line2 = self.pieces_in_direction(d2, sq);
+    return line1.into_iter().chain(vec![piece].into_iter()).chain(line2.into_iter()).collect();
   }
 
   // fn put(&self, square: Square, direction: Direction, pieces: Vec<Piece>) -> Board {
@@ -122,7 +155,28 @@ impl Board {
 
   //   Board { board: new_board }
   // }
+
 }
+
+
+// struct NonEmptyCellIterator<'a> {
+//   board: &'a Board,
+//   direction: Direction,
+//   sq: Square
+// }
+
+// impl<'a, Iterator<Piece>> Iterator<Piece> for NonEmptyCellIterator<'a> {
+//   fn next(&mut self) -> Option<Piece> {
+//     let current_piece = (*self.board).get(self.sq);
+//     if piece::is_blank(current_piece) {
+//       return None;
+//     } else {
+//       self.sq = self.direction.apply(self.sq);
+//       return Some(current_piece);
+//     }
+//   }
+// }
+
 
 impl Clone for Board {
   fn clone(&self) -> Board {

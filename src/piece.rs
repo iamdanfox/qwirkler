@@ -7,6 +7,7 @@ pub type Piece = uint;
 
 pub fn make_bag() -> Bag {
   // TODO: maybe use std::collections::enum_set?
+  // this generates three copies of ij for i <- [1..6] and j <- [1..6]
   range(0, 108).map(|i| 1 + (i % 6) + (10 + ((i / 6) * 10) % 60)).collect()
 }
 

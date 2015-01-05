@@ -11,13 +11,15 @@ mod components;
 fn main() {
 
   let mut game_state = GameState::new(2);
+  let mut i = 0u;
 
   loop {
     let mut moves = game_state.generate_moves();
     match moves.pop() {
       None => break,
       Some(chosen_move) => {
-        println!("player {} turn", game_state.turn);
+        i = i + 1;
+        println!("{}: player {} turn", i, game_state.turn);
         game_state = game_state.apply_move(chosen_move);
       },
     }
