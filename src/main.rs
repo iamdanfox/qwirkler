@@ -94,6 +94,7 @@ impl GameState {
   }
 
   fn apply_move(&self, chosen_move: Move) -> GameState {
+    // fake code
     let mut new_bag = self.bag.clone();
     new_bag.pop();
 
@@ -101,26 +102,50 @@ impl GameState {
     // TODO: real code
     match chosen_move {
       Move::SwapPieces => {
-        // change the current playerState (based on self.turn)
-        // return player's pieces to the mainbag
-        // take 6 random pieces out of the mainbag (if possible)
-        // advance turn
-        println!("swappieces");
+
+        let mut new_players:Vec<PlayerState> = Vec::new();
+
+        let mut final_bag = vec![];
+
+        for (player, i) in self.players.iter().zip(range(0, self.players.len())) {
+          if self.turn == i {
+            let mut main_bag2 = Vec::new();
+            main_bag2.push_all(player.bag.as_slice());
+            main_bag2.push_all(self.bag.as_slice());
+            let empty:Bag = vec![];
+            let (player_bag2, main_bag3) = piece::resupply_player(empty, main_bag2);
+            final_bag = main_bag3;
+
+            new_players.push(PlayerState { score: player.score, bag: player_bag2 });
+          } else {
+            new_players.push(player.clone());
+          }
+        }
+        // TODO: I think this is reversing the list of players...
+
+
+        final_bag.pop(); // DELETE THIS FAKE CODE ONCE PlacePieces WORKS
+
+        GameState {
+          board: self.board.clone(),
+          players: new_players,
+          bag: final_bag,
+          turn: (self.turn + 1) % self.players.len()
+        }
       },
       Move::PlacePieces(_sq, _dir, _pieces) => {
         // remove pieces from the player's bag.
         // resupply players bag from the main bag
         // let new_board = board.put(sq, dir, pieces);
         println!("placespieces");
+
+        GameState {
+          board: self.board.clone(),
+          players: self.players.clone(),
+          bag: new_bag,
+          turn: (self.turn + 1) % self.players.len()
+        }
       }
-    };
-
-
-    GameState {
-      board: self.board.clone(),
-      players: self.players.clone(),
-      bag: new_bag,
-      turn: (self.turn + 1) % self.players.len()
     }
   }
 }
