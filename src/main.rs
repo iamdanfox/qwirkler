@@ -1,13 +1,11 @@
-use board::{Board, Square, Direction};
+use components::{Board, Move, PlayerState};
+use components::Move::{SwapPieces, PlacePieces};
 use piece::{Bag, Piece};
-use moves::Move;
-use moves::Move::{SwapPieces, PlacePieces};
 use std::collections::RingBuf;
 
 // imports all the `pub` stuff from piece.rs
 mod piece;
-mod board;
-mod moves;
+mod components;
 
 
 fn main() {
@@ -31,21 +29,6 @@ fn main() {
 
 
 
-#[derive(Show, Clone)]
-struct PlayerState {
-  bag: Bag,
-  score: int,
-}
-
-impl PlayerState {
-  fn new(bag: Bag) -> PlayerState {
-    PlayerState { bag: bag, score: 0 }
-  }
-}
-
-
-
-// #[derive(Show)]
 struct GameState {
   board: Board,
   players: Vec<PlayerState>,
@@ -53,13 +36,11 @@ struct GameState {
   turn: uint,
 }
 
-
-
 impl GameState {
+
   // factory method
   fn new(num_players: int) -> GameState {
     let mut initial_bag = piece::make_bag();
-
     let mut players = vec![];
 
     for _ in range(0, num_players) {
@@ -96,6 +77,7 @@ impl GameState {
       // figure out any possible moves starting at this start square and direction, add to `moves`
       loop {
         match queue.pop_front() {
+          None => break,
           Some(piece_vector) => {
             let place_pieces = Move::PlacePieces(square, (*direction).clone(), piece_vector);
             println!("{}", place_pieces);
@@ -104,7 +86,6 @@ impl GameState {
               // TODO: also put longer lists into our queue [p1] works try [p1,px], [p1,py], [p1,pz]...
             }
           },
-          None => break,
         }
       }
     }
@@ -124,31 +105,7 @@ impl GameState {
 
     match chosen_move {
       Move::SwapPieces => {
-        let mut new_players:Vec<PlayerState> = Vec::new();
-        let mut final_bag = vec![];
-        for (player, i) in self.players.iter().zip(range(0, self.players.len())) {
-          if self.turn == i {
-            let mut main_bag2 = Vec::new();
-            main_bag2.push_all(player.bag.as_slice());
-            main_bag2.push_all(self.bag.as_slice());
-            let empty:Bag = vec![];
-            let (player_bag2, main_bag3) = piece::resupply_player(empty, main_bag2);
-            final_bag = main_bag3;
-            new_players.push(PlayerState { score: player.score, bag: player_bag2 });
-          } else {
-            new_players.push(player.clone());
-          }
-        }
-        // TODO: I think this is reversing the list of players...
-
-        final_bag.pop(); // DELETE THIS FAKE CODE ONCE PlacePieces WORKS
-
-        GameState {
-          board: self.board.clone(),
-          players: new_players,
-          bag: final_bag,
-          turn: (self.turn + 1) % self.players.len()
-        }
+        self.apply_swap_pieces()
       },
       Move::PlacePieces(_sq, _dir, _pieces) => {
         // remove pieces from the player's bag.
@@ -163,6 +120,34 @@ impl GameState {
           turn: (self.turn + 1) % self.players.len()
         }
       }
+    }
+  }
+
+  fn apply_swap_pieces(&self) -> GameState {
+    let mut new_players:Vec<PlayerState> = Vec::new();
+    let mut final_bag = vec![];
+    for (player, i) in self.players.iter().zip(range(0, self.players.len())) {
+      if self.turn == i {
+        let mut main_bag2 = Vec::new();
+        main_bag2.push_all(player.bag.as_slice());
+        main_bag2.push_all(self.bag.as_slice());
+        let empty:Bag = vec![];
+        let (player_bag2, main_bag3) = piece::resupply_player(empty, main_bag2);
+        final_bag = main_bag3;
+        new_players.push(PlayerState { score: player.score, bag: player_bag2 });
+      } else {
+        new_players.push(player.clone());
+      }
+    }
+    // TODO: I think this is reversing the list of players...
+
+    final_bag.pop(); // DELETE THIS FAKE CODE ONCE PlacePieces WORKS
+
+    GameState {
+      board: self.board.clone(),
+      players: new_players,
+      bag: final_bag,
+      turn: (self.turn + 1) % self.players.len()
     }
   }
 }

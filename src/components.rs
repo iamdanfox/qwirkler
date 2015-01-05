@@ -1,24 +1,33 @@
-// use piece::Piece;
+use piece::{Piece, Bag};
+
+
+#[derive(Show)]
+pub enum Move {
+  SwapPieces,
+  PlacePieces(Square, Direction, Vec<Piece>)
+}
+
+
+#[derive(Show, Clone)]
+pub struct PlayerState {
+  pub bag: Bag,
+  pub score: int,
+}
+
+impl PlayerState {
+  pub fn new(bag: Bag) -> PlayerState {
+    PlayerState { bag: bag, score: 0 }
+  }
+}
 
 
 pub type Square = (uint,uint);
+
 
 #[derive(Show, Clone)]
 pub enum Direction {
   U, D, L, R
 }
-
-// impl Direction {
-//   fn apply(direction: Direction, square: Square) -> Square {
-//     let (x,y) = square;
-//     match direction {
-//       Direction::U => (x,y+1),
-//       Direction::D => (x,y-1),
-//       Direction::L => (x-1,y),
-//       Direction::R => (x+1,y),
-//     }
-//   }
-// }
 
 
 pub struct Board {
