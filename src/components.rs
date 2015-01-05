@@ -3,7 +3,6 @@ use piece;
 use std::fmt;
 use std::string;
 use std::int;
-use std::str;
 
 
 #[derive(Show)]
@@ -242,11 +241,14 @@ impl Board {
     return line1.into_iter().chain(singleton.into_iter()).chain(line2.into_iter()).collect();
   }
 
-  fn put(&self, square: Square, direction: Direction, pieces: Vec<Piece>) -> Board {
-    let (x,y) = square;
+  pub fn put(&self, square: Square, direction: Direction, pieces: Vec<Piece>) -> Board {
     let mut new_board = self.board;
 
-    new_board[(x+25) as uint][(y+25) as uint] = 99;
+    let squares = direction.apply_all(square, pieces.len());
+    for (square,piece) in squares.iter().zip(pieces.iter()) {
+      let (x,y) = *square;
+      new_board[(x+25) as uint][(y+25) as uint] = *piece;
+    }
 
     Board { board: new_board }
   }

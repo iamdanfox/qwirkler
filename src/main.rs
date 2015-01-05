@@ -113,7 +113,7 @@ impl GameState {
 
   fn apply_move(&self, chosen_move: Move) -> GameState {
     match chosen_move {
-      Move::PlacePieces(_sq, _dir, pieces_to_place) => {
+      Move::PlacePieces(sq, dir, pieces_to_place) => {
 
         let mut new_players:Vec<PlayerState> = Vec::new();
         let mut final_bag:Vec<Piece> = vec![];
@@ -142,8 +142,10 @@ impl GameState {
           }
         }
 
+        let new_board = self.board.put(sq, dir, pieces_to_place);
+
         GameState {
-          board: self.board.clone(),
+          board: new_board,
           players: new_players,
           bag: final_bag,
           turn: (self.turn + 1) % self.players.len()
