@@ -9,7 +9,6 @@ mod components;
 
 
 fn main() {
-
   let mut game_state = GameState::new(2);
   let mut i = 0u;
 
@@ -19,6 +18,7 @@ fn main() {
       None => break,
       Some(chosen_move) => {
         i = i + 1;
+        println!("\n\n{}\n", game_state.board);
         println!("{}: player {} turn", i, game_state.turn);
         game_state = game_state.apply_move(chosen_move);
       },
@@ -26,7 +26,6 @@ fn main() {
   }
 
   println!("Game finished.")
-
 }
 
 
@@ -71,14 +70,13 @@ impl GameState {
     let current_player_bag:Bag = self.players[self.turn].clone().bag; // TODO: do this without cloning
     // TODO: turn this into a SET!! (no need to include repetitions here!)
 
-    // TODO RingBufs are unnecessary for the individuals, since Vectors allow push at END!!!
     // figure out possible start squares (and directions).
     // FOR EACH POSSIBLE START CONFIG:
     for &(square, ref direction) in self.board.get_start_squares().iter() {
       // initialize queue with singletons
-      let mut pieces_queue:RingBuf<RingBuf<Piece>> = RingBuf::new();
+      let mut pieces_queue:RingBuf<Vec<Piece>> = RingBuf::new();
       for piece in current_player_bag.iter() {
-        let singleton: RingBuf<Piece> = vec![*piece].into_iter().collect();
+        let singleton: Vec<Piece> = vec![*piece];
         pieces_queue.push_back(singleton);
       }
       // figure out any possible moves starting at this start square and direction, add to `moves`
@@ -88,42 +86,32 @@ impl GameState {
           Some(ref piece_vector) => {
             let place_pieces = Move::PlacePieces(square, (*direction).clone(), (*piece_vector).clone());
 
-            // println!("{}", place_pieces);
-
             if self.board.allows_move(&place_pieces) {
               moves.push(place_pieces);
-              // SHORTCUT LONGER SEQUENCES
-              // // put longer sequences back in the queue (no duplicates allowed!)
-              // 'outer: for next_piece in current_player_bag.iter() {
-              //   for already in piece_vector.iter() {
-              //     if next_piece == already {
-              //       continue 'outer
-              //     }
-              //   }
-              //   let mut appended = piece_vector.clone();
-              //   appended.push_back(*next_piece);
-              //   pieces_queue.push_back(appended);
-              // }
+              // put longer sequences back in the queue (no duplicates allowed!)
+              'outer: for next_piece in current_player_bag.iter() {
+                for already in piece_vector.iter() {
+                  if *next_piece == *already {
+                    continue 'outer
+                  }
+                }
+                let mut appended = piece_vector.clone();
+                appended.push(*next_piece);
+                pieces_queue.push_back(appended);
+              }
             }
           },
         }
       }
     }
 
-    println!("generated {} possible moves", moves.len());
+    println!("    ({} possible moves)", moves.len());
 
     return moves
   }
 
   fn apply_move(&self, chosen_move: Move) -> GameState {
-    // fake code
-    let mut new_bag = self.bag.clone();
-    new_bag.pop();
-
     match chosen_move {
-      Move::SwapPieces => {
-        self.apply_swap_pieces()
-      },
       Move::PlacePieces(_sq, _dir, pieces_to_place) => {
 
         let mut new_players:Vec<PlayerState> = Vec::new();
@@ -159,7 +147,10 @@ impl GameState {
           bag: final_bag,
           turn: (self.turn + 1) % self.players.len()
         }
-      }
+      },
+      Move::SwapPieces => {
+        self.apply_swap_pieces()
+      },
     }
   }
 
