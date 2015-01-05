@@ -36,7 +36,7 @@ fn main() {
     match best {
       None => break,
       Some(&(_, ref chosen_move)) => {
-        game_state = game_state.apply_move(chosen_move);
+        game_state.apply_move(chosen_move);
       },
     }
   }

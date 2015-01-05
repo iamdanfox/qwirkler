@@ -78,10 +78,10 @@ impl GameState {
     return moves
   }
 
-  pub fn apply_move(&self, chosen_move: &Move) -> GameState {
+  pub fn apply_move(&mut self, chosen_move: &Move)  {
     match chosen_move {
       &Move::PlacePieces(sq, ref dir, ref pieces_to_place) => {
-        let (new_board, score_increment) = self.board.put(sq, dir, pieces_to_place);
+        let score_increment = self.board.put(sq, dir, pieces_to_place);
         let mut final_bag:Vec<Piece> = vec![];
 
         let new_players = player::mutate_current(self.turn, &self.players, |player| {
@@ -104,12 +104,16 @@ impl GameState {
           }
         });
 
-        GameState {
-          board: new_board,
-          players: new_players,
-          bag: final_bag,
-          turn: (self.turn + 1) % self.players.len()
-        }
+        self.players = new_players;
+        self.bag = final_bag;
+        self.turn = (self.turn + 1) % self.players.len();
+
+        // GameState {
+        //   board: self.board,
+        //   players: new_players,
+        //   bag: final_bag,
+        //   turn: (self.turn + 1) % self.players.len()
+        // }
       },
       &Move::SwapPieces => {
         let mut final_bag = vec![];
@@ -128,12 +132,15 @@ impl GameState {
           }
         });
 
-        GameState {
-          board: self.board.clone(),
-          players: new_players,
-          bag: final_bag,
-          turn: (self.turn + 1) % self.players.len()
-        }
+        self.players = new_players;
+        self.bag = final_bag;
+        self.turn = (self.turn + 1) % self.players.len();
+        // GameState {
+        //   board: self.board.clone(),
+        //   players: new_players,
+        //   bag: final_bag,
+        //   turn: (self.turn + 1) % self.players.len()
+        // }
       },
     }
   }

@@ -204,18 +204,18 @@ impl Board {
     return score
   }
 
-  pub fn put(&self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) -> (Board, Score) {
+  pub fn put(&mut self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) -> Score {
     // compute the new array
-    let mut new_array = self.board;
+    // let mut new_array = self.board;
     let squares = direction.apply_all(start_sq, pieces.len());
     for (&(x,y),&piece) in squares.iter().zip(pieces.iter()) {
-      new_array[(x+DIM) as uint][(y+DIM) as uint] = piece;
+      self.board[(x+DIM) as uint][(y+DIM) as uint] = piece;
     }
 
     // compute the new perimeter
-    let mut new_perimeter = self.perimeter.clone();
+    // let mut new_perimeter = self.perimeter.clone();
     for sq in squares.iter() {
-      new_perimeter.remove(sq);
+      self.perimeter.remove(sq);
     }
 
     let mut candidates = Vec::new();
@@ -229,16 +229,17 @@ impl Board {
 
     for &sq in candidates.iter() {
       if piece::is_blank(self.get(sq)) {
-        new_perimeter.insert(sq);
+        self.perimeter.insert(sq);
       }
     }
 
-    let new_board = Board {
-      board: new_array,
-      perimeter: new_perimeter,
-    };
+    // let new_board = Board {
+    //   board: new_array,
+    //   perimeter: perimeter,
+    // };
     let score = self.compute_score(start_sq, direction, pieces);
-    return (new_board, score)
+    // return (self, score)
+    return score
   }
 
 }
