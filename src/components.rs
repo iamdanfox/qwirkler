@@ -77,11 +77,12 @@ impl Direction {
 
 
 
-const DIM:int = 40;
-const DIM_2:uint = (2*DIM) as uint;
 pub struct Board {
   board: [[Piece; DIM_2]; DIM_2]
 }
+
+const DIM:int = 40;
+const DIM_2:uint = (2*DIM) as uint;
 
 impl fmt::Show for Board {
   fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -101,6 +102,12 @@ impl fmt::Show for Board {
       output.push_str("\n");
     }
     output.fmt(formatter)
+  }
+}
+
+impl Clone for Board {
+  fn clone(&self) -> Board {
+    Board { board: self.board }
   }
 }
 
@@ -302,9 +309,3 @@ impl Board {
 //   }
 // }
 
-
-impl Clone for Board {
-  fn clone(&self) -> Board {
-    Board { board: self.board }
-  }
-}
