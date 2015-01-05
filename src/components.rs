@@ -44,7 +44,7 @@ impl Board {
     return vec![((0,0), Direction::R)]
   }
 
-  pub fn allows_move(&self) -> bool {
+  pub fn allows_move(&self, m: &Move) -> bool {
     return true
   }
 

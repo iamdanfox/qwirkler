@@ -70,20 +70,30 @@ impl GameState {
     // FOR EACH POSSIBLE START CONFIG:
     for &(square, ref direction) in self.board.get_start_squares().iter() {
       // initialize queue with singletons
-      let mut queue:RingBuf<Vec<Piece>> = RingBuf::new();
+      let mut pieces_queue:RingBuf<Vec<Piece>> = RingBuf::new();
       for piece in current_player_bag.iter() {
-        queue.push_back(vec![*piece])
+        pieces_queue.push_back(vec![*piece])
       }
       // figure out any possible moves starting at this start square and direction, add to `moves`
       loop {
-        match queue.pop_front() {
+        match pieces_queue.pop_front() {
           None => break,
-          Some(piece_vector) => {
-            let place_pieces = Move::PlacePieces(square, (*direction).clone(), piece_vector);
+          Some(ref piece_vector) => {
+            let place_pieces = Move::PlacePieces(square, (*direction).clone(), (*piece_vector).clone());
             println!("{}", place_pieces);
-            if self.board.allows_move() {
+            if self.board.allows_move(&place_pieces) {
               moves.push(place_pieces);
-              // TODO: also put longer lists into our queue [p1] works try [p1,px], [p1,py], [p1,pz]...
+
+              // 'outer: for next_piece in current_player_bag.iter() {
+              //   for already in piece_vector.iter() {
+              //     if next_piece == already {
+              //       continue 'outer
+              //     }
+              //   }
+              //   // let appended = piece_vector with next_piece appended!
+              //   // pieces_queue.push_back(appended);
+              //   // TODO: also put longer lists into our queue [p1] works try [p1,px], [p1,py], [p1,pz]...
+              // }
             }
           },
         }
