@@ -20,8 +20,7 @@ impl GameState {
     let mut players = vec![];
 
     for _ in range(0, num_players) {
-      let empty:Vec<uint> = vec![];
-      let (player_bag, main_bag) = piece::resupply_player(empty, initial_bag);
+      let (player_bag, main_bag) = piece::resupply_player(vec![], initial_bag);
       initial_bag = main_bag;
       players.push(PlayerState::new(player_bag));
     }
@@ -40,17 +39,16 @@ impl GameState {
       moves.push(Move::SwapPieces)
     }
 
-    let current_player_bag:Bag = self.players[self.turn].clone().bag;
+    let mut initial_queue = RingBuf::new();
+    for piece in self.players[self.turn].bag.iter() {
+      let singleton: Vec<Piece> = vec![*piece];
+      initial_queue.push_back(singleton);
+    }
 
     // figure out possible start squares (and directions).
-    // FOR EACH POSSIBLE START CONFIG:
     for &(square, ref direction) in self.board.get_start_squares().iter() {
       // initialize queue with singletons
-      let mut pieces_queue:RingBuf<Vec<Piece>> = RingBuf::new();
-      for piece in current_player_bag.iter() {
-        let singleton: Vec<Piece> = vec![*piece];
-        pieces_queue.push_back(singleton);
-      }
+      let mut pieces_queue = initial_queue.clone();
       // figure out any possible moves starting at this start square and direction, add to `moves`
       loop {
         match pieces_queue.pop_front() {
@@ -62,7 +60,7 @@ impl GameState {
               moves.push(place_pieces);
 
               // put longer sequences back in the queue (no duplicates allowed!)
-              'outer: for next_piece in current_player_bag.iter() {
+              'outer: for next_piece in self.players[self.turn].bag.iter() {
                 for already in piece_vector.iter() {
                   if *next_piece == *already {
                     continue 'outer
@@ -77,19 +75,16 @@ impl GameState {
         }
       }
     }
-
     return moves
   }
 
   pub fn apply_move(&self, chosen_move: &Move) -> GameState {
     match chosen_move {
       &Move::PlacePieces(sq, ref dir, ref pieces_to_place) => {
-
         let (new_board, score_increment) = self.board.put(sq, dir, pieces_to_place);
         let mut final_bag:Vec<Piece> = vec![];
 
         let new_players = player::mutate_current(self.turn, &self.players, |player| {
-
           let mut depleted_player_bag:Vec<Piece> = Vec::new();
           'outer: for existing_piece in player.bag.iter() {
             for piece in pieces_to_place.iter() {

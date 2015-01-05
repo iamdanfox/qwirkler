@@ -20,7 +20,7 @@ fn main() {
     let moves:Vec<(int, Move)> = game_state
       .generate_moves()
       .into_iter()
-      .map(|mv| (game_state.board.score_move(&mv), mv))
+      .map(|mv| (game_state.board.score_move(&mv) as int, mv))
       .collect();
 
     let mut best = None;
@@ -40,8 +40,8 @@ fn main() {
     }
   }
 
-  // compute total score
   println!("\n\n\n\nGame finished.");
+
   let mut sum = 0;
   let mut i = 0;
   for player in game_state.players.iter() {

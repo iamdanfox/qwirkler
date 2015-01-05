@@ -46,4 +46,8 @@ impl Direction {
   pub fn all() -> Vec<Direction> {
     return vec![Direction::U, Direction::D, Direction::L, Direction::R]
   }
+
+  pub fn initial() -> Direction {
+    return Direction::R
+  }
 }

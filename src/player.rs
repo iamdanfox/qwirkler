@@ -1,9 +1,11 @@
 use piece::Bag;
 
+pub type Score = uint;
+
 #[derive(Show, Clone)]
 pub struct PlayerState {
   pub bag: Bag,
-  pub score: int,
+  pub score: Score,
 }
 
 impl PlayerState {

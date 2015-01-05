@@ -1,9 +1,8 @@
-use piece::{Piece, is_blank};
 use piece;
+use piece::Piece;
 use direction::{Square, Direction};
-use std::fmt;
-use std::string;
-use std::int;
+use std::{fmt, int, string};
+use player::Score;
 
 
 #[derive(Show)]
@@ -11,7 +10,6 @@ pub enum Move {
   SwapPieces,
   PlacePieces(Square, Direction, Vec<Piece>)
 }
-
 
 
 pub struct Board {
@@ -23,7 +21,7 @@ const DIM_2:uint = (2*DIM) as uint;
 
 impl fmt::Show for Board {
   fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-    let mut output: string::String = string::String::new();
+    let mut output = string::String::new();
     let (min_x, max_x, min_y, max_y) = self.get_bounding_box();
 
     for y in range(min_y - 1, max_y + 2) {
@@ -52,8 +50,6 @@ impl Board {
   pub fn new() -> Board {
     let blank = piece::blank();
     let new_board = [[blank; DIM_2]; DIM_2];
-    // new_board[25][25] = 99;
-    // new_board[26][26] = 11;
     Board { board: new_board }
   }
 
@@ -93,7 +89,7 @@ impl Board {
           for direction in all_directions.iter() {
             let adjacent_square = direction.apply(square);
             if piece::is_blank(self.get(adjacent_square)) {
-              // we now know adjacent_square is in blank, on the 'perimeter'
+              // we now know the adjacent_square is in blank, on the 'perimeter'
               for d2 in all_directions.iter() {
                 let target_square = d2.apply(adjacent_square);
                 if piece::is_blank(self.get(target_square)) {
@@ -108,14 +104,13 @@ impl Board {
     }
     // TODO de-duplicate result???
     if result.len() == 0 {
-      return vec![ ((0,0), Direction::R) ]
+      return vec![ ((0,0), Direction::initial()) ]
     } else {
       return result
     }
   }
 
-  pub fn get(&self, sq:Square) -> Piece {
-    let (x,y) = sq;
+  pub fn get(&self, (x,y):Square) -> Piece {
     return self.board[(x+DIM) as uint][(y+DIM) as uint];
   }
 
@@ -189,14 +184,15 @@ impl Board {
   }
 
   fn perp_line(&self, main_direction: &Direction, sq: Square, piece: Piece) -> Vec<Piece> {
+    let mut result = Vec::new();
     let (d1,d2) = main_direction.perpendiculars();
-    let line1 = self.pieces_in_direction(&d1, sq);
-    let line2 = self.pieces_in_direction(&d2, sq);
-    let singleton:Vec<Piece> = vec![piece];
-    return line1.into_iter().chain(singleton.into_iter()).chain(line2.into_iter()).collect();
+    result.push_all(self.pieces_in_direction(&d1, sq).as_slice());
+    result.push(piece);
+    result.push_all(self.pieces_in_direction(&d2, sq).as_slice());
+    return result;
   }
 
-  pub fn score_move(&self, mv: &Move) -> int {
+  pub fn score_move(&self, mv: &Move) -> Score {
     match mv {
       &Move::SwapPieces => 0,
       &Move::PlacePieces(start_sq, ref direction, ref pieces) => {
@@ -205,18 +201,17 @@ impl Board {
     }
   }
 
-  pub fn compute_score(&self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) -> int {
+  pub fn compute_score(&self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) -> Score {
     let mut score = 0;
     let mainline = self.get_mainline(start_sq, direction, pieces);
     let perps = self.get_all_perpendiculars(start_sq, direction, pieces);
     for line in vec![mainline].iter().chain(perps.iter()).filter(|line| line.len() > 1) {
       score = score + line.len() + (if line.len() == 6 { 6 } else { 0 });
     }
-    return score as int
+    return score
   }
 
-  // Places pieces on the board and also returns the score for that move
-  pub fn put(&self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) -> (Board, int) {
+  pub fn put(&self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) -> (Board, Score) {
     let mut new_board = self.board;
 
     let squares = direction.apply_all(start_sq, pieces.len());
@@ -229,23 +224,3 @@ impl Board {
   }
 
 }
-
-
-// struct NonEmptyCellIterator<'a> {
-//   board: &'a Board,
-//   direction: Direction,
-//   sq: Square
-// }
-
-// impl<'a, Iterator<Piece>> Iterator<Piece> for NonEmptyCellIterator<'a> {
-//   fn next(&mut self) -> Option<Piece> {
-//     let current_piece = (*self.board).get(self.sq);
-//     if piece::is_blank(current_piece) {
-//       return None;
-//     } else {
-//       self.sq = self.direction.apply(self.sq);
-//       return Some(current_piece);
-//     }
-//   }
-// }
-
