@@ -4,6 +4,7 @@ use components::Move;
 mod piece;
 mod components;
 mod gamestate;
+mod direction;
 
 
 fn main() {

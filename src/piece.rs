@@ -10,6 +10,7 @@ pub fn make_bag() -> Bag {
   range(0, 108).map(|i| 1 + (i % 6) + (10 + ((i / 6) * 10) % 60)).collect()
 }
 
+#[inline(always)]
 pub fn resupply_player(player_bag: Bag, main_bag: Bag) -> (Bag, Bag) {
   // shuffle main_bag -> main_bag2
   let mut main_bag2 = Vec::new();
@@ -31,14 +32,17 @@ pub fn resupply_player(player_bag: Bag, main_bag: Bag) -> (Bag, Bag) {
   return (player_bag2, main_bag2)
 }
 
+#[inline(always)]
 pub fn is_blank(p: Piece) -> bool {
   return p == 0
 }
 
+#[inline(always)]
 pub fn blank() -> Piece {
   return 0
 }
 
+#[inline(always)]
 pub fn valid_line(line: &Vec<Piece>) -> bool {
   if line.len() == 1 {
     return true;
@@ -55,6 +59,7 @@ pub fn valid_line(line: &Vec<Piece>) -> bool {
   return true;
 }
 
+#[inline(always)]
 fn all_unique(line: &Vec<Piece>) -> bool {
   let mut seen_already = [false; 67];
   for piece in line.iter() {
@@ -67,6 +72,7 @@ fn all_unique(line: &Vec<Piece>) -> bool {
   return true
 }
 
+#[inline(always)]
 fn all_same_colour(line: &Vec<Piece>) -> bool {
   let first = line[0] / 10;
   for piece in line.iter() {
@@ -77,6 +83,7 @@ fn all_same_colour(line: &Vec<Piece>) -> bool {
   return true
 }
 
+#[inline(always)]
 fn all_same_shape(line: &Vec<Piece>) -> bool {
   let first = line[0] % 10;
   for piece in line.iter() {

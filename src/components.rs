@@ -1,8 +1,11 @@
 use piece::{Piece, Bag, is_blank};
 use piece;
+use direction;
+use direction::{Square, Direction};
 use std::fmt;
 use std::string;
 use std::int;
+
 
 
 #[derive(Show)]
@@ -25,63 +28,11 @@ impl PlayerState {
 }
 
 
-pub type Square = (int,int);
-
-
-#[derive(Show, Clone)]
-pub enum Direction {
-  U, D, L, R // these are causing lots of pain. maybe switch them to 1,2,3,4??
-}
-
-impl Direction {
-  fn apply(&self, sq: Square) -> Square {
-    let (x,y) = sq;
-    match *self {
-      Direction::U => (x, y+1),
-      Direction::D => (x, y-1),
-      Direction::L => (x-1, y),
-      Direction::R => (x+1, y),
-    }
-  }
-
-  fn opposite(&self) -> Direction {
-    match *self {
-      Direction::U => Direction::D,
-      Direction::D => Direction::U,
-      Direction::L => Direction::R,
-      Direction::R => Direction::L,
-    }
-  }
-
-  fn perpendiculars(&self) -> (Direction,Direction) {
-    match *self {
-      Direction::U | Direction::D => (Direction::L, Direction::R),
-      Direction::L | Direction::R => (Direction::U, Direction::D),
-    }
-  }
-
-  fn apply_all(&self, sq: Square, len: uint) -> Vec<Square> {
-    let mut squares = vec![];
-    let mut last = sq;
-    for _ in range(0, len) {
-      squares.push(last);
-      last = self.apply(last);
-    }
-    return squares
-  }
-
-  fn all() -> Vec<Direction> {
-    return vec![Direction::U, Direction::D, Direction::L, Direction::R]
-  }
-}
-
-
-
 pub struct Board {
   board: [[Piece; DIM_2]; DIM_2]
 }
 
-const DIM:int = 40;
+const DIM:int = 25;
 const DIM_2:uint = (2*DIM) as uint;
 
 impl fmt::Show for Board {
@@ -95,7 +46,7 @@ impl fmt::Show for Board {
         if !piece::is_blank(piece) {
           output.push_str(piece.to_string().as_slice());
         } else {
-          output.push_str("--");
+          output.push_str("..");
         }
         output.push_str(" ");
       }
@@ -147,10 +98,9 @@ impl Board {
   pub fn get_start_squares(&self) -> Vec<(Square, Direction)> {
     let all_directions = Direction::all();
     let mut result: Vec<(Square, Direction)> = Vec::new();
-    let (min_x, max_x, min_y, max_y) = self.get_bounding_box();
 
-    for y in range(min_y, max_y+1) {
-      for x in range(min_x, max_x+1) {
+    for y in range(-DIM, DIM) {
+      for x in range(-DIM, DIM) {
         let square = (x,y);
         if !piece::is_blank(self.get(square)) {
           // we now know square is occupied
@@ -178,7 +128,6 @@ impl Board {
     }
   }
 
-
   pub fn get(&self, sq:Square) -> Piece {
     let (x,y) = sq;
     return self.board[(x+DIM) as uint][(y+DIM) as uint];
@@ -188,32 +137,31 @@ impl Board {
     match *m {
       Move::SwapPieces => return true,
       Move::PlacePieces(start_sq, ref direction, ref pieces) => {
+        let all_squares = direction.apply_all(start_sq, pieces.len());
+        let last_square:Square = all_squares[pieces.len() - 1];
+
+        // check the last piece is laid onto an empty square.
+        if !piece::is_blank(self.get(last_square)) {
+          return false
+        }
 
         // do a preliminary sanity check on `pieces`
         if !piece::valid_line(pieces) {
           return false
         }
 
-        // check squares are empty
-        let all_squares = direction.apply_all(start_sq, pieces.len());
-        for sq in all_squares.iter() {
-          if !piece::is_blank(self.get(*sq)) {
-            return false;
-          }
+        // since the prefix of this line was already passed validation,
+        // we just need to check the last perpendicular.
+        let last_piece:Piece = pieces[pieces.len()-1];
+        let line = self.perp_line(direction, last_square, last_piece);
+        if !piece::valid_line(&line) {
+          return false
         }
 
         // do a full mainline check
         let mainline = self.get_mainline(start_sq, direction, pieces);
         if !piece::valid_line(&mainline) {
           return false;
-        }
-
-        // do all the perpendicular line checks
-        let perps = self.get_all_perpendiculars(start_sq, direction, pieces);
-        for line in perps.iter() {
-          if !piece::valid_line(line) {
-            return false
-          }
         }
 
         return true
@@ -275,10 +223,8 @@ impl Board {
     let mut score = 0;
     let mainline = self.get_mainline(start_sq, direction, pieces);
     let perps = self.get_all_perpendiculars(start_sq, direction, pieces);
-    for line in vec![mainline].iter().chain(perps.iter()) {
-      if line.len() > 1 {
-        score = score + line.len() + (if line.len() == 6 { 6 } else { 0 });
-      }
+    for line in vec![mainline].iter().chain(perps.iter()).filter(|line| line.len() > 1) {
+      score = score + line.len() + (if line.len() == 6 { 6 } else { 0 });
     }
     return score as int
   }
@@ -288,9 +234,8 @@ impl Board {
     let mut new_board = self.board;
 
     let squares = direction.apply_all(start_sq, pieces.len());
-    for (start_sq,piece) in squares.iter().zip(pieces.iter()) {
-      let (x,y) = *start_sq;
-      new_board[(x+DIM) as uint][(y+DIM) as uint] = *piece;
+    for (&(x,y),&piece) in squares.iter().zip(pieces.iter()) {
+      new_board[(x+DIM) as uint][(y+DIM) as uint] = piece;
     }
 
     let score = self.compute_score(start_sq, direction, pieces);

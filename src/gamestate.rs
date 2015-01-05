@@ -78,8 +78,6 @@ impl GameState {
       }
     }
 
-    println!("    ({} possible moves)", moves.len());
-
     return moves
   }
 
