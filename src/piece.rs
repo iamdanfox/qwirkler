@@ -35,6 +35,10 @@ pub fn is_blank(p: Piece) -> bool {
   return p == 0
 }
 
+pub fn blank() -> Piece {
+  return 0
+}
+
 
 pub fn all_unique(line: &Vec<Piece>) -> bool {
   let mut seen_already = [false; 67];

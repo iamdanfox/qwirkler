@@ -1,6 +1,9 @@
 use piece::{Piece, Bag, is_blank};
 use piece;
 use std::fmt;
+use std::string;
+use std::int;
+use std::str;
 
 
 #[derive(Show)]
@@ -23,7 +26,7 @@ impl PlayerState {
 }
 
 
-pub type Square = (uint,uint);
+pub type Square = (int,int);
 
 
 #[derive(Show, Clone)]
@@ -71,19 +74,62 @@ impl Direction {
 
 
 pub struct Board {
-  board: [[uint; 50]; 50] // compatible with uint Piece
+  board: [[Piece; 50]; 50]
 }
 
 impl fmt::Show for Board {
   fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-    write!(formatter, "[[BOARD]]: {}", 12345)
+    let mut output: string::String = string::String::new();
+    let (min_x, max_x, min_y, max_y) = self.get_bounding_box();
+
+    for y in range(min_y - 1, max_y + 2) {
+      for x in range(min_x - 1, max_x + 2) {
+        let piece = self.get((x,y));
+        if !piece::is_blank(piece) {
+          output.push_str(piece.to_string().as_slice());
+        } else {
+          output.push_str("--");
+        }
+        output.push_str(" ");
+      }
+      output.push_str("\n");
+    }
+    output.fmt(formatter)
   }
 }
 
 impl Board {
   pub fn new() -> Board {
-    let new_board = [[0; 50]; 50];
-    Board { board: new_board}
+    let blank = piece::blank();
+    let mut new_board = [[blank; 50]; 50];
+    // new_board[26][26] = 11;
+    // new_board[24][24] = 11;
+    Board { board: new_board }
+  }
+
+  fn get_bounding_box(&self) -> (int,int,int,int) {
+    let mut min_x = int::MAX;
+    let mut max_x = int::MIN;
+
+    let mut min_y = int::MAX;
+    let mut max_y = int::MIN;
+
+    for j in range(0,50) {
+      for i in range(0, 50) {
+        let (x,y) = (i-25, j-25);
+        if !piece::is_blank(self.get((x,y))) {
+          if x < min_x { min_x = x; };
+          if x > max_x { max_x = x; };
+          if y < min_y { min_y = y; };
+          if y > max_y { max_y = y; };
+        }
+      }
+    }
+    if min_x == int::MAX { min_x = 0 };
+    if max_x == int::MIN { max_x = 0 };
+    if min_y == int::MAX { min_y = 0 };
+    if max_y == int::MIN { max_y = 0 };
+    return (min_x, max_x, min_y, max_y)
   }
 
   pub fn get_start_squares(&self) -> Vec<(Square, Direction)> {
@@ -95,7 +141,7 @@ impl Board {
 
   pub fn get(&self, sq:Square) -> Piece {
     let (x,y) = sq;
-    return self.board[x+25][y+25];
+    return self.board[(x+25) as uint][(y+25) as uint];
   }
 
   pub fn allows_move(&self, m: &Move) -> bool {
@@ -169,7 +215,7 @@ impl Board {
     let (x,y) = square;
     let mut new_board = self.board;
 
-    new_board[x][y] = 99;
+    new_board[(x+25) as uint][(y+25) as uint] = 99;
 
     Board { board: new_board }
   }
