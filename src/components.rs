@@ -268,17 +268,30 @@ impl Board {
     return line1.into_iter().chain(singleton.into_iter()).chain(line2.into_iter()).collect();
   }
 
+  pub fn compute_score(&self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) -> int {
+    let mut score = 0;
+    let mainline = self.get_mainline(start_sq, direction, pieces);
+    let perps = self.get_all_perpendiculars(start_sq, direction, pieces);
+    for line in vec![mainline].iter().chain(perps.iter()) {
+      if line.len() > 1 {
+        score = score + line.len() + (if line.len() == 6 { 6 } else { 0 });
+      }
+    }
+    return score as int
+  }
+
   // Places pieces on the board and also returns the score for that move
-  pub fn put(&self, square: Square, direction: &Direction, pieces: &Vec<Piece>) -> (Board, int) {
+  pub fn put(&self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) -> (Board, int) {
     let mut new_board = self.board;
 
-    let squares = direction.apply_all(square, pieces.len());
-    for (square,piece) in squares.iter().zip(pieces.iter()) {
-      let (x,y) = *square;
+    let squares = direction.apply_all(start_sq, pieces.len());
+    for (start_sq,piece) in squares.iter().zip(pieces.iter()) {
+      let (x,y) = *start_sq;
       new_board[(x+DIM) as uint][(y+DIM) as uint] = *piece;
     }
 
-    return (Board { board: new_board }, 1)
+    let score = self.compute_score(start_sq, direction, pieces);
+    return (Board { board: new_board }, score)
   }
 
 }
