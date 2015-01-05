@@ -70,6 +70,10 @@ impl Direction {
     }
     return squares
   }
+
+  fn all() -> Vec<Direction> {
+    return vec![Direction::U, Direction::D, Direction::L, Direction::R]
+  }
 }
 
 
@@ -102,8 +106,8 @@ impl Board {
   pub fn new() -> Board {
     let blank = piece::blank();
     let mut new_board = [[blank; 50]; 50];
+    // new_board[25][25] = 99;
     // new_board[26][26] = 11;
-    // new_board[24][24] = 11;
     Board { board: new_board }
   }
 
@@ -114,9 +118,8 @@ impl Board {
     let mut min_y = int::MAX;
     let mut max_y = int::MIN;
 
-    for j in range(0,50) {
-      for i in range(0, 50) {
-        let (x,y) = (i-25, j-25);
+    for y in range(-25,25) {
+      for x in range(-25, 25) {
         if !piece::is_blank(self.get((x,y))) {
           if x < min_x { min_x = x; };
           if x > max_x { max_x = x; };
@@ -133,11 +136,39 @@ impl Board {
   }
 
   pub fn get_start_squares(&self) -> Vec<(Square, Direction)> {
+    let all_directions = Direction::all();
+    let mut result: Vec<(Square, Direction)> = Vec::new();
+    let (min_x, max_x, min_y, max_y) = self.get_bounding_box();
 
-    // TODO generate the actual perimeter and check all directions
-
-    return vec![((0,0), Direction::R)]
+    for y in range(min_y, max_y+1) {
+      for x in range(min_x, max_x+1) {
+        let square = (x,y);
+        if !piece::is_blank(self.get(square)) {
+          // we now know square is occupied
+          for direction in all_directions.iter() {
+            let adjacent_square = direction.apply(square);
+            if piece::is_blank(self.get(adjacent_square)) {
+              // we now know adjacent_square is in blank, on the 'perimeter'
+              for d2 in all_directions.iter() {
+                let target_square = d2.apply(adjacent_square);
+                if piece::is_blank(self.get(target_square)) {
+                  // now we know that d2 is safe to move in
+                  result.push((adjacent_square,d2.clone()));
+                }
+              }
+            };
+          }
+        };
+      }
+    }
+    // TODO de-duplicate result???
+    if result.len() == 0 {
+      return vec![ ((0,0), Direction::R) ]
+    } else {
+      return result
+    }
   }
+
 
   pub fn get(&self, sq:Square) -> Piece {
     let (x,y) = sq;

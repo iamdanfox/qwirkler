@@ -88,17 +88,18 @@ impl GameState {
 
             if self.board.allows_move(&place_pieces) {
               moves.push(place_pieces);
+
               // put longer sequences back in the queue (no duplicates allowed!)
-              'outer: for next_piece in current_player_bag.iter() {
-                for already in piece_vector.iter() {
-                  if *next_piece == *already {
-                    continue 'outer
-                  }
-                }
-                let mut appended = piece_vector.clone();
-                appended.push(*next_piece);
-                pieces_queue.push_back(appended);
-              }
+              // 'outer: for next_piece in current_player_bag.iter() {
+              //   for already in piece_vector.iter() {
+              //     if *next_piece == *already {
+              //       continue 'outer
+              //     }
+              //   }
+              //   let mut appended = piece_vector.clone();
+              //   appended.push(*next_piece);
+              //   pieces_queue.push_back(appended);
+              // }
             }
           },
         }
