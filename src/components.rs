@@ -103,22 +103,24 @@ impl Board {
             return false;
           }
         }
-
-        // for every newly formed line:
-        for line in self.get_newly_formed_lines(start_sq, direction, pieces).iter() {
-          // pieces must form a line of one color/shape
-          // use `piece::all_unique`
-          if !piece::all_unique(line) {
-            return false
-          }
-
-          // no repeated pieces allowed
-          if !piece::all_same_colour(line) && !piece::all_same_shape(line) {
-            return false
-          }
-        }
-
         return true
+
+        // SHORTCUT complex checks
+        // // for every newly formed line:
+        // for line in self.get_newly_formed_lines(start_sq, direction, pieces).iter() {
+        //   // pieces must form a line of one color/shape
+        //   // use `piece::all_unique`
+        //   if !piece::all_unique(line) {
+        //     return false
+        //   }
+
+        //   // no repeated pieces allowed
+        //   if !piece::all_same_colour(line) && !piece::all_same_shape(line) {
+        //     return false
+        //   }
+        // }
+
+        // return true
       },
     }
   }

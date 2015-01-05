@@ -64,10 +64,14 @@ impl GameState {
   fn generate_moves(&self) -> Vec<Move> {
 
     let mut moves:Vec<Move> = Vec::new();
+    if self.bag.len() > 0 {
+      moves.push(Move::SwapPieces)
+    }
 
     let current_player_bag:Bag = self.players[self.turn].clone().bag; // TODO: do this without cloning
     // TODO: turn this into a SET!! (no need to include repetitions here!)
 
+    // TODO RingBufs are unnecessary for the individuals, since Vectors allow push at END!!!
     // figure out possible start squares (and directions).
     // FOR EACH POSSIBLE START CONFIG:
     for &(square, ref direction) in self.board.get_start_squares().iter() {
@@ -84,32 +88,26 @@ impl GameState {
           Some(ref piece_vector) => {
             let place_pieces = Move::PlacePieces(square, (*direction).clone(), (*piece_vector).clone());
 
-
             // println!("{}", place_pieces);
-
 
             if self.board.allows_move(&place_pieces) {
               moves.push(place_pieces);
-              // put longer sequences back in the queue (no duplicates allowed!)
-              'outer: for next_piece in current_player_bag.iter() {
-                for already in piece_vector.iter() {
-                  if next_piece == already {
-                    continue 'outer
-                  }
-                }
-                let mut appended = piece_vector.clone();
-                appended.push_back(*next_piece);
-                pieces_queue.push_back(appended);
-              }
+              // SHORTCUT LONGER SEQUENCES
+              // // put longer sequences back in the queue (no duplicates allowed!)
+              // 'outer: for next_piece in current_player_bag.iter() {
+              //   for already in piece_vector.iter() {
+              //     if next_piece == already {
+              //       continue 'outer
+              //     }
+              //   }
+              //   let mut appended = piece_vector.clone();
+              //   appended.push_back(*next_piece);
+              //   pieces_queue.push_back(appended);
+              // }
             }
           },
         }
       }
-    }
-
-
-    if self.bag.len() > 0 {
-      moves.push(Move::SwapPieces)
     }
 
     println!("generated {} possible moves", moves.len());
@@ -126,17 +124,39 @@ impl GameState {
       Move::SwapPieces => {
         self.apply_swap_pieces()
       },
-      Move::PlacePieces(_sq, _dir, _pieces) => {
-        // remove pieces from the player's bag.
-        // resupply players bag from the main bag
-        // also score the player's move!
-        // let new_board = board.put(sq, dir, pieces);
-        println!("placespieces");
+      Move::PlacePieces(_sq, _dir, pieces_to_place) => {
+
+        let mut new_players:Vec<PlayerState> = Vec::new();
+        let mut final_bag:Vec<Piece> = vec![];
+        for (player, i) in self.players.iter().zip(range(0, self.players.len())) {
+          if self.turn == i {
+
+            let mut depleted_player_bag:Vec<Piece> = Vec::new();
+            'outer: for existing_piece in player.bag.iter() {
+              for piece in pieces_to_place.iter() {
+                if *existing_piece == *piece {
+                  continue 'outer;
+                }
+              }
+              depleted_player_bag.push(*existing_piece);
+            }
+
+            let (player_bag2, main_bag2) = piece::resupply_player(depleted_player_bag, self.bag.clone());
+            final_bag = main_bag2;
+
+            // TODO: place the pieces on the board and increment the player's score!
+            // let new_board = board.put(sq, dir, pieces);
+
+            new_players.push(PlayerState { score: player.score, bag: player_bag2 });
+          } else {
+            new_players.push(player.clone());
+          }
+        }
 
         GameState {
           board: self.board.clone(),
-          players: self.players.clone(),
-          bag: new_bag,
+          players: new_players,
+          bag: final_bag,
           turn: (self.turn + 1) % self.players.len()
         }
       }
@@ -159,7 +179,6 @@ impl GameState {
         new_players.push(player.clone());
       }
     }
-    // TODO: I think this is reversing the list of players... .rev()?
 
     final_bag.pop(); // DELETE THIS FAKE CODE ONCE PlacePieces WORKS
 

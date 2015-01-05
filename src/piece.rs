@@ -1,5 +1,4 @@
 use std::rand::{thread_rng, Rng};
-use std::collections::RingBuf;
 
 pub type Bag = Vec<Piece>;
 pub type Piece = uint;
