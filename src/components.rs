@@ -3,6 +3,7 @@ use piece::Piece;
 use direction::{Square, Direction};
 use std::{fmt, int, string};
 use player::Score;
+use std::collections::HashSet;
 
 
 #[derive(Show)]
@@ -13,7 +14,8 @@ pub enum Move {
 
 
 pub struct Board {
-  board: [[Piece; DIM_2]; DIM_2]
+  board: [[Piece; DIM_2]; DIM_2],
+  perimeter: HashSet<Square>
 }
 
 const DIM:int = 25;
@@ -42,7 +44,10 @@ impl fmt::Show for Board {
 
 impl Clone for Board {
   fn clone(&self) -> Board {
-    Board { board: self.board }
+    Board {
+      board: self.board,
+      perimeter: self.perimeter.clone()
+    }
   }
 }
 
@@ -50,7 +55,10 @@ impl Board {
   pub fn new() -> Board {
     let blank = piece::blank();
     let new_board = [[blank; DIM_2]; DIM_2];
-    Board { board: new_board }
+    Board {
+      board: new_board,
+      perimeter: HashSet::new()
+    }
   }
 
   fn get_bounding_box(&self) -> (int,int,int,int) {
@@ -212,15 +220,40 @@ impl Board {
   }
 
   pub fn put(&self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) -> (Board, Score) {
-    let mut new_board = self.board;
-
+    // compute the new array
+    let mut new_array = self.board;
     let squares = direction.apply_all(start_sq, pieces.len());
     for (&(x,y),&piece) in squares.iter().zip(pieces.iter()) {
-      new_board[(x+DIM) as uint][(y+DIM) as uint] = piece;
+      new_array[(x+DIM) as uint][(y+DIM) as uint] = piece;
     }
 
+    // compute the new perimeter
+    let mut new_perimeter = self.perimeter.clone();
+    for sq in squares.iter() {
+      new_perimeter.remove(sq);
+    }
+
+    let mut candidates = Vec::new();
+    candidates.push(direction.apply(squares[pieces.len()-1]));
+    candidates.push(direction.opposite().apply(start_sq));
+    let (d1,d2) = direction.perpendiculars();
+    for &sq in squares.iter() {
+      candidates.push(d1.apply(sq));
+      candidates.push(d2.apply(sq));
+    }
+
+    for &sq in candidates.iter() {
+      if piece::is_blank(self.get(sq)) {
+        new_perimeter.insert(sq);
+      }
+    }
+
+    let new_board = Board {
+      board: new_array,
+      perimeter: new_perimeter,
+    };
     let score = self.compute_score(start_sq, direction, pieces);
-    return (Board { board: new_board }, score)
+    return (new_board, score)
   }
 
 }
