@@ -83,11 +83,11 @@ impl GameState {
     return moves
   }
 
-  pub fn apply_move(&self, chosen_move: Move) -> GameState {
+  pub fn apply_move(&self, chosen_move: &Move) -> GameState {
     match chosen_move {
-      Move::PlacePieces(sq, dir, pieces_to_place) => {
+      &Move::PlacePieces(sq, ref dir, ref pieces_to_place) => {
 
-        let (new_board, score_increment) = self.board.put(sq, &dir, &pieces_to_place);
+        let (new_board, score_increment) = self.board.put(sq, dir, pieces_to_place);
 
         let mut new_players:Vec<PlayerState> = Vec::new();
         let mut final_bag:Vec<Piece> = vec![];
@@ -123,7 +123,7 @@ impl GameState {
           turn: (self.turn + 1) % self.players.len()
         }
       },
-      Move::SwapPieces => {
+      &Move::SwapPieces => {
         let mut new_players:Vec<PlayerState> = Vec::new();
         let mut final_bag = vec![];
         for (player, i) in self.players.iter().zip(range(0, self.players.len())) {

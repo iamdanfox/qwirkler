@@ -18,7 +18,7 @@ fn main() {
     let mut moves = game_state.generate_moves();
     match moves.pop() {
       None => break,
-      Some(chosen_move) => {
+      Some(ref chosen_move) => {
         game_state = game_state.apply_move(chosen_move);
       },
     }
