@@ -123,14 +123,26 @@ impl Board {
     }
   }
 
-  fn get_newly_formed_lines(&self, start_sq:Square, direction:&Direction, pieces:&RingBuf<Piece>) -> Vec<RingBuf<Piece>> {
+  fn get_newly_formed_lines(&self, start_sq:Square, direction:&Direction, pieces:&RingBuf<Piece>) -> Vec<Vec<Piece>> {
+
+    // compute mainline
+    let mut mainline:Vec<Piece> = Vec::new();
+    let last_square:Square = direction.apply_all(start_sq, pieces.len())[pieces.len()-1];
+    let before = self.pieces_in_direction(&direction.opposite(), start_sq);
+    mainline.push_all(before.as_slice());
+    for piece in (*pieces).iter() {
+      mainline.push(*piece);
+    }
+    let after = self.pieces_in_direction(direction, last_square);
+    mainline.push_all(after.as_slice());
+
 
     // TODO compute : mainline ++ perpendicular lines.  Use .chain to join
 
-    return vec![(*pieces).clone()]
+    return vec![]
   }
 
-  fn pieces_in_direction(&self, direction: Direction, start: Square) -> Vec<Piece> {
+  fn pieces_in_direction(&self, direction: &Direction, start: Square) -> Vec<Piece> {
     let mut sq = direction.apply(start);
     let mut pieces = vec![];
     while !piece::is_blank(self.get(sq)) {
@@ -142,19 +154,20 @@ impl Board {
 
   fn perp_line(&self, main_direction: Direction, sq: Square, piece: Piece) -> Vec<Piece> {
     let (d1,d2) = main_direction.perpendiculars();
-    let line1 = self.pieces_in_direction(d1, sq);
-    let line2 = self.pieces_in_direction(d2, sq);
-    return line1.into_iter().chain(vec![piece].into_iter()).chain(line2.into_iter()).collect();
+    let line1 = self.pieces_in_direction(&d1, sq);
+    let line2 = self.pieces_in_direction(&d2, sq);
+    let singleton:Vec<Piece> = vec![piece];
+    return line1.into_iter().chain(singleton.into_iter()).chain(line2.into_iter()).collect();
   }
 
-  // fn put(&self, square: Square, direction: Direction, pieces: Vec<Piece>) -> Board {
-  //   let (x,y) = square;
-  //   let mut new_board = self.board;
+  fn put(&self, square: Square, direction: Direction, pieces: Vec<Piece>) -> Board {
+    let (x,y) = square;
+    let mut new_board = self.board;
 
-  //   new_board[x][y] = 99;
+    new_board[x][y] = 99;
 
-  //   Board { board: new_board }
-  // }
+    Board { board: new_board }
+  }
 
 }
 

@@ -37,7 +37,7 @@ pub fn is_blank(p: Piece) -> bool {
 }
 
 
-pub fn all_unique(line: &RingBuf<Piece>) -> bool {
+pub fn all_unique(line: &Vec<Piece>) -> bool {
   let mut seen_already = [false; 67];
   for piece in line.iter() {
     if seen_already[*piece] {
@@ -49,7 +49,7 @@ pub fn all_unique(line: &RingBuf<Piece>) -> bool {
   return true
 }
 
-pub fn all_same_colour(line: &RingBuf<Piece>) -> bool {
+pub fn all_same_colour(line: &Vec<Piece>) -> bool {
   let first = line[0] / 10;
   for piece in line.iter() {
     if (*piece) / 10 != first {
@@ -59,7 +59,7 @@ pub fn all_same_colour(line: &RingBuf<Piece>) -> bool {
   return true
 }
 
-pub fn all_same_shape(line: &RingBuf<Piece>) -> bool {
+pub fn all_same_shape(line: &Vec<Piece>) -> bool {
   let first = line[0] % 10;
   for piece in line.iter() {
     if (*piece) % 10 != first {
