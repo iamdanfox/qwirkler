@@ -268,7 +268,8 @@ impl Board {
     return line1.into_iter().chain(singleton.into_iter()).chain(line2.into_iter()).collect();
   }
 
-  pub fn put(&self, square: Square, direction: Direction, pieces: Vec<Piece>) -> Board {
+  // Places pieces on the board and also returns the score for that move
+  pub fn put(&self, square: Square, direction: &Direction, pieces: &Vec<Piece>) -> (Board, int) {
     let mut new_board = self.board;
 
     let squares = direction.apply_all(square, pieces.len());
@@ -277,7 +278,7 @@ impl Board {
       new_board[(x+DIM) as uint][(y+DIM) as uint] = *piece;
     }
 
-    Board { board: new_board }
+    return (Board { board: new_board }, 1)
   }
 
 }

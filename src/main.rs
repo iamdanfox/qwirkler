@@ -14,12 +14,10 @@ fn main() {
   let mut game_state = GameState::new(2);
   let mut i = 0u;
 
-  // let mut reader = io::stdin();
-
   loop {
     i = i + 1;
     println!("\n\n{}\n", game_state.board);
-    println!("{}: player {} turn", i, game_state.turn);
+    println!("{}: player {} turn (score = {})", i, game_state.turn, game_state.players[game_state.turn].score);
 
     let mut moves = game_state.generate_moves();
     match moves.pop() {
@@ -28,10 +26,18 @@ fn main() {
         game_state = game_state.apply_move(chosen_move);
       },
     }
-    // reader.read_line().ok().expect("Failed to read line");
   }
 
-  println!("Game finished.")
+  // compute total score
+  println!("\n\n\n\nGame finished.");
+  let mut sum = 0;
+  let mut i = 0;
+  for player in game_state.players.iter() {
+    println!("  player {} score={}", i, player.score);
+    sum = sum + player.score;
+    i += 1;
+  }
+  println!("\n  total = {}", sum);
 }
 
 
@@ -122,6 +128,8 @@ impl GameState {
     match chosen_move {
       Move::PlacePieces(sq, dir, pieces_to_place) => {
 
+        let (new_board, score_increment) = self.board.put(sq, &dir, &pieces_to_place);
+
         let mut new_players:Vec<PlayerState> = Vec::new();
         let mut final_bag:Vec<Piece> = vec![];
         for (player, i) in self.players.iter().zip(range(0, self.players.len())) {
@@ -143,13 +151,12 @@ impl GameState {
             // TODO: place the pieces on the board and increment the player's score!
             // let new_board = board.put(sq, dir, pieces);
 
-            new_players.push(PlayerState { score: player.score, bag: player_bag2 });
+            new_players.push(PlayerState { score: player.score + score_increment, bag: player_bag2 });
           } else {
             new_players.push(player.clone());
           }
         }
 
-        let new_board = self.board.put(sq, dir, pieces_to_place);
 
         GameState {
           board: new_board,
