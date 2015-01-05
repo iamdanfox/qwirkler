@@ -70,9 +70,10 @@ impl GameState {
     // FOR EACH POSSIBLE START CONFIG:
     for &(square, ref direction) in self.board.get_start_squares().iter() {
       // initialize queue with singletons
-      let mut pieces_queue:RingBuf<Vec<Piece>> = RingBuf::new();
+      let mut pieces_queue:RingBuf<RingBuf<Piece>> = RingBuf::new();
       for piece in current_player_bag.iter() {
-        pieces_queue.push_back(vec![*piece])
+        let singleton: RingBuf<Piece> = vec![*piece].into_iter().collect();
+        pieces_queue.push_back(singleton);
       }
       // figure out any possible moves starting at this start square and direction, add to `moves`
       loop {
@@ -80,20 +81,24 @@ impl GameState {
           None => break,
           Some(ref piece_vector) => {
             let place_pieces = Move::PlacePieces(square, (*direction).clone(), (*piece_vector).clone());
-            println!("{}", place_pieces);
+
+
+            // println!("{}", place_pieces);
+
+
             if self.board.allows_move(&place_pieces) {
               moves.push(place_pieces);
-
-              // 'outer: for next_piece in current_player_bag.iter() {
-              //   for already in piece_vector.iter() {
-              //     if next_piece == already {
-              //       continue 'outer
-              //     }
-              //   }
-              //   // let appended = piece_vector with next_piece appended!
-              //   // pieces_queue.push_back(appended);
-              //   // TODO: also put longer lists into our queue [p1] works try [p1,px], [p1,py], [p1,pz]...
-              // }
+              // put longer sequences back in the queue (no duplicates allowed!)
+              'outer: for next_piece in current_player_bag.iter() {
+                for already in piece_vector.iter() {
+                  if next_piece == already {
+                    continue 'outer
+                  }
+                }
+                let mut appended = piece_vector.clone();
+                appended.push_back(*next_piece);
+                pieces_queue.push_back(appended);
+              }
             }
           },
         }
@@ -120,6 +125,7 @@ impl GameState {
       Move::PlacePieces(_sq, _dir, _pieces) => {
         // remove pieces from the player's bag.
         // resupply players bag from the main bag
+        // also score the player's move!
         // let new_board = board.put(sq, dir, pieces);
         println!("placespieces");
 
@@ -149,7 +155,7 @@ impl GameState {
         new_players.push(player.clone());
       }
     }
-    // TODO: I think this is reversing the list of players...
+    // TODO: I think this is reversing the list of players... .rev()?
 
     final_bag.pop(); // DELETE THIS FAKE CODE ONCE PlacePieces WORKS
 

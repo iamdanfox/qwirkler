@@ -1,10 +1,11 @@
 use piece::{Piece, Bag};
+use std::collections::RingBuf;
 
 
 #[derive(Show)]
 pub enum Move {
   SwapPieces,
-  PlacePieces(Square, Direction, Vec<Piece>)
+  PlacePieces(Square, Direction, RingBuf<Piece>)
 }
 
 
