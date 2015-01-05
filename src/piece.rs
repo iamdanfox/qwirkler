@@ -1,4 +1,5 @@
 use std::rand::{thread_rng, Rng};
+use std::collections::RingBuf;
 
 pub type Bag = Vec<Piece>;
 pub type Piece = uint;
@@ -28,4 +29,41 @@ pub fn resupply_player(player_bag: Bag, main_bag: Bag) -> (Bag, Bag) {
   }
 
   return (player_bag2, main_bag2)
+}
+
+pub fn is_blank(p: Piece) -> bool {
+  return p == 0
+}
+
+
+pub fn all_unique(line: &RingBuf<Piece>) -> bool {
+  let mut seen_already = [false; 67];
+  for piece in line.iter() {
+    if seen_already[*piece] {
+      return false;
+    } else {
+      seen_already[*piece] = true;
+    }
+  }
+  return true
+}
+
+pub fn all_same_colour(line: &RingBuf<Piece>) -> bool {
+  let first = line[0] / 10;
+  for piece in line.iter() {
+    if (*piece) / 10 != first {
+      return false
+    }
+  }
+  return true
+}
+
+pub fn all_same_shape(line: &RingBuf<Piece>) -> bool {
+  let first = line[0] % 10;
+  for piece in line.iter() {
+    if (*piece) % 10 != first {
+      return false
+    }
+  }
+  return true
 }

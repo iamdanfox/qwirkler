@@ -110,6 +110,8 @@ impl GameState {
       moves.push(Move::SwapPieces)
     }
 
+    println!("generated {} possible moves", moves.len());
+
     return moves
   }
 
