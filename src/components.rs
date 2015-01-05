@@ -1,11 +1,9 @@
-use piece::{Piece, Bag, is_blank};
+use piece::{Piece, is_blank};
 use piece;
-use direction;
 use direction::{Square, Direction};
 use std::fmt;
 use std::string;
 use std::int;
-
 
 
 #[derive(Show)]
@@ -14,18 +12,6 @@ pub enum Move {
   PlacePieces(Square, Direction, Vec<Piece>)
 }
 
-
-#[derive(Show, Clone)]
-pub struct PlayerState {
-  pub bag: Bag,
-  pub score: int,
-}
-
-impl PlayerState {
-  pub fn new(bag: Bag) -> PlayerState {
-    PlayerState { bag: bag, score: 0 }
-  }
-}
 
 
 pub struct Board {
@@ -65,7 +51,7 @@ impl Clone for Board {
 impl Board {
   pub fn new() -> Board {
     let blank = piece::blank();
-    let mut new_board = [[blank; DIM_2]; DIM_2];
+    let new_board = [[blank; DIM_2]; DIM_2];
     // new_board[25][25] = 99;
     // new_board[26][26] = 11;
     Board { board: new_board }

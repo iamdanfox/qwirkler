@@ -1,9 +1,9 @@
-use components::{Board, Move, PlayerState};
-use components::Move::{SwapPieces, PlacePieces};
+use components::{Board, Move};
 use piece::{Bag, Piece};
-use std::collections::RingBuf;
 use piece;
-use components;
+use player::PlayerState;
+use player;
+use std::collections::RingBuf;
 
 
 pub struct GameState {
@@ -86,33 +86,28 @@ impl GameState {
       &Move::PlacePieces(sq, ref dir, ref pieces_to_place) => {
 
         let (new_board, score_increment) = self.board.put(sq, dir, pieces_to_place);
-
-        let mut new_players:Vec<PlayerState> = Vec::new();
         let mut final_bag:Vec<Piece> = vec![];
-        for (player, i) in self.players.iter().zip(range(0, self.players.len())) {
-          if self.turn == i {
 
-            let mut depleted_player_bag:Vec<Piece> = Vec::new();
-            'outer: for existing_piece in player.bag.iter() {
-              for piece in pieces_to_place.iter() {
-                if *existing_piece == *piece {
-                  continue 'outer;
-                }
+        let new_players = player::mutate_current(self.turn, &self.players, |player| {
+
+          let mut depleted_player_bag:Vec<Piece> = Vec::new();
+          'outer: for existing_piece in player.bag.iter() {
+            for piece in pieces_to_place.iter() {
+              if *existing_piece == *piece {
+                continue 'outer;
               }
-              depleted_player_bag.push(*existing_piece);
             }
-
-            let (player_bag2, main_bag2) = piece::resupply_player(depleted_player_bag, self.bag.clone());
-            final_bag = main_bag2;
-
-            new_players.push(PlayerState {
-              score: player.score + score_increment,
-              bag: player_bag2
-            });
-          } else {
-            new_players.push(player.clone());
+            depleted_player_bag.push(*existing_piece);
           }
-        }
+
+          let (player_bag2, main_bag2) = piece::resupply_player(depleted_player_bag, self.bag.clone());
+          final_bag = main_bag2;
+
+          return PlayerState {
+            score: player.score + score_increment,
+            bag: player_bag2
+          }
+        });
 
         GameState {
           board: new_board,
@@ -122,21 +117,21 @@ impl GameState {
         }
       },
       &Move::SwapPieces => {
-        let mut new_players:Vec<PlayerState> = Vec::new();
         let mut final_bag = vec![];
-        for (player, i) in self.players.iter().zip(range(0, self.players.len())) {
-          if self.turn == i {
-            let mut main_bag2 = Vec::new();
-            main_bag2.push_all(player.bag.as_slice());
-            main_bag2.push_all(self.bag.as_slice());
-            let empty:Bag = vec![];
-            let (player_bag2, main_bag3) = piece::resupply_player(empty, main_bag2);
-            final_bag = main_bag3;
-            new_players.push(PlayerState { score: player.score, bag: player_bag2 });
-          } else {
-            new_players.push(player.clone());
+
+        let new_players = player::mutate_current(self.turn, &self.players, |player| {
+          let mut main_bag2 = Vec::new();
+          main_bag2.push_all(player.bag.as_slice());
+          main_bag2.push_all(self.bag.as_slice());
+          let empty:Bag = vec![];
+          let (player_bag2, main_bag3) = piece::resupply_player(empty, main_bag2);
+          final_bag = main_bag3;
+
+          return PlayerState {
+            score: player.score,
+            bag: player_bag2
           }
-        }
+        });
 
         GameState {
           board: self.board.clone(),

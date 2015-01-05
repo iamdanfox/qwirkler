@@ -5,6 +5,7 @@ mod piece;
 mod components;
 mod gamestate;
 mod direction;
+mod player;
 
 
 fn main() {
