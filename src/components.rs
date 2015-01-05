@@ -178,50 +178,75 @@ impl Board {
     match *m {
       Move::SwapPieces => return true,
       Move::PlacePieces(start_sq, ref direction, ref pieces) => {
+
+        print!("\n allows_move {} ", pieces);
+
+        // do a preliminary sanity check on `pieces`
         let all_squares = direction.apply_all(start_sq, pieces.len());
         for sq in all_squares.iter() {
           if !piece::is_blank(self.get(*sq)) {
             return false;
           }
         }
-
-        // for every newly formed line:
-        for line in self.get_newly_formed_lines(start_sq, direction, pieces).iter() {
-          // pieces must form a line of one color/shape
-          // use `piece::all_unique`
-          if !piece::all_unique(line) {
-            return false
-          }
-
-          // no repeated pieces allowed
-          if !piece::all_same_colour(line) && !piece::all_same_shape(line) {
-            return false
-          }
+        if !piece::all_unique(pieces) {
+          return false
         }
+        if !piece::all_same_colour(pieces) && !piece::all_same_shape(pieces) {
+          return false
+        }
+
+        // do a full mainline check
+        let mainline = self.get_mainline(start_sq, direction, pieces);
+        if mainline.len() > 6 {
+          return false;
+        }
+        if !piece::all_unique(&mainline) {
+          return false;
+        }
+        if !piece::all_same_colour(&mainline) && !piece::all_same_shape(&mainline) {
+          return false;
+        }
+        print!("mainline={}", mainline);
+
+
+        // // for every new perpendicular line
+        // for line in self.get_all_perpendiculars(start_sq, direction, pieces).iter() {
+        //   // pieces must form a line of one color/shape
+        //   // use `piece::all_unique`
+        //   if !piece::all_unique(line) {
+        //     return false
+        //   }
+
+        //   // no repeated pieces allowed
+        //   if !piece::all_same_colour(line) && !piece::all_same_shape(line) {
+        //     return false
+        //   }
+        // }
 
         return true
       },
     }
   }
 
-  fn get_newly_formed_lines(&self, start_sq:Square, direction:&Direction, pieces:&Vec<Piece>) -> Vec<Vec<Piece>> {
-
+  fn get_mainline(&self, start_sq:Square, direction:&Direction, pieces:&Vec<Piece>) -> Vec<Piece> {
     // compute mainline
     let mut mainline:Vec<Piece> = Vec::new();
-    let last_square:Square = direction.apply_all(start_sq, pieces.len())[pieces.len()-1];
     let before = self.pieces_in_direction(&direction.opposite(), start_sq);
     mainline.push_all(before.as_slice());
-    for piece in (*pieces).iter() { // replace with push_all(...as_slice)
-      mainline.push(*piece);
-    }
+    mainline.push_all(pieces.as_slice());
+    let last_square:Square = direction.apply_all(start_sq, pieces.len())[pieces.len()-1];
     let after = self.pieces_in_direction(direction, last_square);
     mainline.push_all(after.as_slice());
-
-
-    // TODO compute : mainline ++ perpendicular lines.  Use .chain to join
-
-    return vec![]
+    return mainline;
   }
+
+  // fn get_all_perpendiculars(&self, start_sq:Square, direction:&Direction, pieces:&Vec<Piece>) -> Vec<Vec<Piece>> {
+
+
+  //   // TODO compute : mainline ++ perpendicular lines.  Use .chain to join
+
+  //   return vec![mainline]
+  // }
 
   fn pieces_in_direction(&self, direction: &Direction, start: Square) -> Vec<Piece> {
     let mut sq = direction.apply(start);

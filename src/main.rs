@@ -2,15 +2,19 @@ use components::{Board, Move, PlayerState};
 use components::Move::{SwapPieces, PlacePieces};
 use piece::{Bag, Piece};
 use std::collections::RingBuf;
+use std::io;
 
-// imports all the `pub` stuff from piece.rs
+
 mod piece;
 mod components;
+
 
 
 fn main() {
   let mut game_state = GameState::new(2);
   let mut i = 0u;
+
+  let mut reader = io::stdin();
 
   loop {
     let mut moves = game_state.generate_moves();
@@ -23,6 +27,7 @@ fn main() {
         game_state = game_state.apply_move(chosen_move);
       },
     }
+    let input = reader.read_line().ok().expect("Failed to read line");
   }
 
   println!("Game finished.")
@@ -88,18 +93,19 @@ impl GameState {
 
             if self.board.allows_move(&place_pieces) {
               moves.push(place_pieces);
+              print!("success");
 
               // put longer sequences back in the queue (no duplicates allowed!)
-              // 'outer: for next_piece in current_player_bag.iter() {
-              //   for already in piece_vector.iter() {
-              //     if *next_piece == *already {
-              //       continue 'outer
-              //     }
-              //   }
-              //   let mut appended = piece_vector.clone();
-              //   appended.push(*next_piece);
-              //   pieces_queue.push_back(appended);
-              // }
+              'outer: for next_piece in current_player_bag.iter() {
+                for already in piece_vector.iter() {
+                  if *next_piece == *already {
+                    continue 'outer
+                  }
+                }
+                let mut appended = piece_vector.clone();
+                appended.push(*next_piece);
+                pieces_queue.push_back(appended);
+              }
             }
           },
         }
