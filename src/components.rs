@@ -262,6 +262,15 @@ impl Board {
     return line1.into_iter().chain(singleton.into_iter()).chain(line2.into_iter()).collect();
   }
 
+  pub fn score_move(&self, mv: &Move) -> int {
+    match mv {
+      &Move::SwapPieces => 0,
+      &Move::PlacePieces(start_sq, ref direction, ref pieces) => {
+        return self.compute_score(start_sq, direction, pieces);
+      }
+    }
+  }
+
   pub fn compute_score(&self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) -> int {
     let mut score = 0;
     let mainline = self.get_mainline(start_sq, direction, pieces);

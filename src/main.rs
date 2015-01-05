@@ -1,5 +1,5 @@
 use gamestate::GameState;
-
+use components::Move;
 
 mod piece;
 mod components;
@@ -15,10 +15,21 @@ fn main() {
     println!("\n\n{}\n", game_state.board);
     println!("{}: player {} turn (score = {})", i, game_state.turn, game_state.players[game_state.turn].score);
 
-    let mut moves = game_state.generate_moves();
-    match moves.pop() {
+    let moves = game_state.generate_moves();
+    let moves2:Vec<(int, Move)> = moves.into_iter().map(|mv| (game_state.board.score_move(&mv), mv)).collect();
+
+    let mut best = None;
+    for pair in moves2.iter() {
+      best = match best {
+        None => Some(pair),
+        Some(ref m) if pair.0 > (*m).0 => Some(pair),
+        _ => best
+      }
+    };
+
+    match best {
       None => break,
-      Some(ref chosen_move) => {
+      Some(&(_, ref chosen_move)) => {
         game_state = game_state.apply_move(chosen_move);
       },
     }
