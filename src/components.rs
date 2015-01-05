@@ -86,28 +86,13 @@ impl Board {
   }
 
   pub fn get_start_squares(&self) -> Vec<(Square, Direction)> {
-    let all_directions = Direction::all();
     let mut result: Vec<(Square, Direction)> = Vec::new();
 
-    for y in range(-DIM, DIM) {
-      for x in range(-DIM, DIM) {
-        let square = (x,y);
-        if !piece::is_blank(self.get(square)) {
-          // we now know square is occupied
-          for direction in all_directions.iter() {
-            let adjacent_square = direction.apply(square);
-            if piece::is_blank(self.get(adjacent_square)) {
-              // we now know the adjacent_square is in blank, on the 'perimeter'
-              for d2 in all_directions.iter() {
-                let target_square = d2.apply(adjacent_square);
-                if piece::is_blank(self.get(target_square)) {
-                  // now we know that d2 is safe to move in
-                  result.push((adjacent_square,d2.clone()));
-                }
-              }
-            };
-          }
-        };
+    for direction in Direction::all().iter() {
+      for &sq in self.perimeter.iter() {
+        if piece::is_blank(self.get(direction.apply(sq))) {
+          result.push((sq,direction.clone()));
+        }
       }
     }
     // TODO de-duplicate result???
