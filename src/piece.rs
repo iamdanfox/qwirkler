@@ -39,8 +39,23 @@ pub fn blank() -> Piece {
   return 0
 }
 
+pub fn valid_line(line: &Vec<Piece>) -> bool {
+  if line.len() == 1 {
+    return true;
+  }
+  if line.len() > 6 {
+    return false;
+  }
+  if !all_unique(line) {
+    return false;
+  }
+  if !all_same_colour(line) && !all_same_shape(line) {
+    return false;
+  }
+  return true;
+}
 
-pub fn all_unique(line: &Vec<Piece>) -> bool {
+fn all_unique(line: &Vec<Piece>) -> bool {
   let mut seen_already = [false; 67];
   for piece in line.iter() {
     if seen_already[*piece] {
@@ -52,7 +67,7 @@ pub fn all_unique(line: &Vec<Piece>) -> bool {
   return true
 }
 
-pub fn all_same_colour(line: &Vec<Piece>) -> bool {
+fn all_same_colour(line: &Vec<Piece>) -> bool {
   let first = line[0] / 10;
   for piece in line.iter() {
     if (*piece) / 10 != first {
@@ -62,7 +77,7 @@ pub fn all_same_colour(line: &Vec<Piece>) -> bool {
   return true
 }
 
-pub fn all_same_shape(line: &Vec<Piece>) -> bool {
+fn all_same_shape(line: &Vec<Piece>) -> bool {
   let first = line[0] % 10;
   for piece in line.iter() {
     if (*piece) % 10 != first {

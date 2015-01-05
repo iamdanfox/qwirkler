@@ -183,41 +183,28 @@ impl Board {
       Move::PlacePieces(start_sq, ref direction, ref pieces) => {
 
         // do a preliminary sanity check on `pieces`
+        if !piece::valid_line(pieces) {
+          return false
+        }
+
+        // check squares are empty
         let all_squares = direction.apply_all(start_sq, pieces.len());
         for sq in all_squares.iter() {
           if !piece::is_blank(self.get(*sq)) {
             return false;
           }
         }
-        if !piece::all_unique(pieces) {
-          return false
-        }
-        if !piece::all_same_colour(pieces) && !piece::all_same_shape(pieces) {
-          return false
-        }
 
         // do a full mainline check
         let mainline = self.get_mainline(start_sq, direction, pieces);
-        if mainline.len() > 6 {
-          return false;
-        }
-        if !piece::all_unique(&mainline) {
-          return false;
-        }
-        if !piece::all_same_colour(&mainline) && !piece::all_same_shape(&mainline) {
+        if !piece::valid_line(&mainline) {
           return false;
         }
 
         // do all the perpendicular line checks
         let perps = self.get_all_perpendiculars(start_sq, direction, pieces);
         for line in perps.iter() {
-          if line.len() > 6 {
-            return false
-          }
-          if !piece::all_unique(line) {
-            return false
-          }
-          if !piece::all_same_colour(line) && !piece::all_same_shape(line) {
+          if !piece::valid_line(line) {
             return false
           }
         }
