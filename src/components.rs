@@ -179,8 +179,6 @@ impl Board {
       Move::SwapPieces => return true,
       Move::PlacePieces(start_sq, ref direction, ref pieces) => {
 
-        print!("\n allows_move {} ", pieces);
-
         // do a preliminary sanity check on `pieces`
         let all_squares = direction.apply_all(start_sq, pieces.len());
         for sq in all_squares.iter() {
@@ -206,22 +204,20 @@ impl Board {
         if !piece::all_same_colour(&mainline) && !piece::all_same_shape(&mainline) {
           return false;
         }
-        print!("mainline={}", mainline);
 
-
-        // // for every new perpendicular line
-        // for line in self.get_all_perpendiculars(start_sq, direction, pieces).iter() {
-        //   // pieces must form a line of one color/shape
-        //   // use `piece::all_unique`
-        //   if !piece::all_unique(line) {
-        //     return false
-        //   }
-
-        //   // no repeated pieces allowed
-        //   if !piece::all_same_colour(line) && !piece::all_same_shape(line) {
-        //     return false
-        //   }
-        // }
+        // do all the perpendicular line checks
+        let perps = self.get_all_perpendiculars(start_sq, direction, pieces);
+        for line in perps.iter() {
+          if line.len() > 6 {
+            return false
+          }
+          if !piece::all_unique(line) {
+            return false
+          }
+          if !piece::all_same_colour(line) && !piece::all_same_shape(line) {
+            return false
+          }
+        }
 
         return true
       },
@@ -240,13 +236,16 @@ impl Board {
     return mainline;
   }
 
-  // fn get_all_perpendiculars(&self, start_sq:Square, direction:&Direction, pieces:&Vec<Piece>) -> Vec<Vec<Piece>> {
+  fn get_all_perpendiculars(&self, start_sq:Square, direction:&Direction, pieces:&Vec<Piece>) -> Vec<Vec<Piece>> {
+    let mut perp_lines: Vec<Vec<Piece>> = Vec::new();
 
-
-  //   // TODO compute : mainline ++ perpendicular lines.  Use .chain to join
-
-  //   return vec![mainline]
-  // }
+    let all_squares = direction.apply_all(start_sq, pieces.len());
+    for (square,piece) in all_squares.iter().zip(pieces.iter()) {
+      let l = self.perp_line(direction, *square, *piece);
+      perp_lines.push(l);
+    }
+    return perp_lines
+  }
 
   fn pieces_in_direction(&self, direction: &Direction, start: Square) -> Vec<Piece> {
     let mut sq = direction.apply(start);
@@ -258,7 +257,7 @@ impl Board {
     return pieces;
   }
 
-  fn perp_line(&self, main_direction: Direction, sq: Square, piece: Piece) -> Vec<Piece> {
+  fn perp_line(&self, main_direction: &Direction, sq: Square, piece: Piece) -> Vec<Piece> {
     let (d1,d2) = main_direction.perpendiculars();
     let line1 = self.pieces_in_direction(&d1, sq);
     let line2 = self.pieces_in_direction(&d2, sq);
