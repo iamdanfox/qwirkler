@@ -1,7 +1,7 @@
 use piece;
 use piece::Piece;
 use direction::{Square, Direction};
-use std::{fmt, int, string};
+use std::{fmt, string};
 use player::Score;
 use std::collections::HashSet;
 
@@ -15,7 +15,11 @@ pub enum Move {
 
 pub struct Board {
   board: [[Piece; DIM_2]; DIM_2],
-  perimeter: HashSet<Square>
+  perimeter: HashSet<Square>,
+  min_x: int,
+  max_x: int,
+  min_y: int,
+  max_y: int,
 }
 
 const DIM:int = 25;
@@ -24,10 +28,9 @@ const DIM_2:uint = (2*DIM) as uint;
 impl fmt::Show for Board {
   fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
     let mut output = string::String::new();
-    let (min_x, max_x, min_y, max_y) = self.get_bounding_box();
 
-    for y in range(min_y - 1, max_y + 2) {
-      for x in range(min_x - 1, max_x + 2) {
+    for y in range(self.min_y - 1, self.max_y + 2) {
+      for x in range(self.min_x - 1, self.max_x + 2) {
         let piece = self.get((x,y));
         if !piece::is_blank(piece) {
           output.push_str(piece.to_string().as_slice());
@@ -48,32 +51,12 @@ impl Board {
     let new_board = [[blank; DIM_2]; DIM_2];
     Board {
       board: new_board,
-      perimeter: HashSet::new()
+      perimeter: HashSet::new(),
+      min_x: 0,
+      max_x: 0,
+      min_y: 0,
+      max_y: 0,
     }
-  }
-
-  fn get_bounding_box(&self) -> (int,int,int,int) {
-    let mut min_x = int::MAX;
-    let mut max_x = int::MIN;
-
-    let mut min_y = int::MAX;
-    let mut max_y = int::MIN;
-
-    for y in range(-DIM,DIM) {
-      for x in range(-DIM, DIM) {
-        if !piece::is_blank(self.get((x,y))) {
-          if x < min_x { min_x = x; };
-          if x > max_x { max_x = x; };
-          if y < min_y { min_y = y; };
-          if y > max_y { max_y = y; };
-        }
-      }
-    }
-    if min_x == int::MAX { min_x = 0 };
-    if max_x == int::MIN { max_x = 0 };
-    if min_y == int::MAX { min_y = 0 };
-    if max_y == int::MIN { max_y = 0 };
-    return (min_x, max_x, min_y, max_y)
   }
 
   pub fn get_start_squares(&self) -> Vec<(Square, Direction)> {
@@ -221,7 +204,18 @@ impl Board {
       }
     }
 
+    // update the bounding box.
+    self.stretch_bounding_box(squares[0]);
+    self.stretch_bounding_box(squares[pieces.len()-1]);
+
     return self.compute_score(start_sq, direction, pieces);
+  }
+
+  fn stretch_bounding_box(&mut self, (x,y): Square) {
+    if x < self.min_x { self.min_x = x; };
+    if x > self.max_x { self.max_x = x; };
+    if y < self.min_y { self.min_y = y; };
+    if y > self.max_y { self.max_y = y; };
   }
 
 }
