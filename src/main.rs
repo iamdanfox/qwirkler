@@ -1,6 +1,6 @@
 use gamestate::GameState;
 use components::Move;
-
+use player::Score;
 
 mod piece;
 mod components;
@@ -18,7 +18,7 @@ fn main() {
     // println!("\n\n{}\n", game_state.board);
     // println!("{}: player {} turn (score = {})", i, game_state.turn, game_state.players[game_state.turn].score);
 
-    let moves:Vec<(uint, Move)> = game_state.generate_moves();
+    let moves:Vec<(Score, Move)> = game_state.generate_moves();
 
     let mut best = None;
     for pair in moves.iter() {
@@ -31,8 +31,8 @@ fn main() {
 
     match best {
       None => break,
-      Some(&(_, ref chosen_move)) => {
-        game_state.apply_move(chosen_move);
+      Some(&(score, ref chosen_move)) => {
+        game_state.apply_move(chosen_move, score);
       },
     }
   }

@@ -12,7 +12,7 @@ pub enum Move {
   PlacePieces(Square, Direction, Vec<Piece>)
 }
 
-#[derive(Clone, Show)]
+#[derive(Show)]
 pub struct PartialScored {
   pub pieces: Vec<Piece>,
   pub last_square: Square,
@@ -141,17 +141,6 @@ impl Board {
     return mainline;
   }
 
-  fn get_all_perpendiculars(&self, start_sq:Square, direction:&Direction, pieces:&Vec<Piece>) -> Vec<Vec<Piece>> {
-    let mut perp_lines: Vec<Vec<Piece>> = Vec::new();
-
-    let all_squares = direction.apply_all(start_sq, pieces.len());
-    for (square,piece) in all_squares.iter().zip(pieces.iter()) {
-      let l = self.perp_line(direction, *square, *piece);
-      perp_lines.push(l);
-    }
-    return perp_lines
-  }
-
   fn pieces_in_direction(&self, direction: &Direction, start: Square) -> Vec<Piece> {
     let mut sq = direction.apply(start);
     let mut pieces = vec![];
@@ -171,26 +160,7 @@ impl Board {
     return result;
   }
 
-  pub fn score_move(&self, mv: &Move) -> Score {
-    match mv {
-      &Move::SwapPieces => 0,
-      &Move::PlacePieces(start_sq, ref direction, ref pieces) => {
-        return self.compute_score(start_sq, direction, pieces);
-      }
-    }
-  }
-
-  pub fn compute_score(&self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) -> Score {
-    let mut score = 0;
-    let mainline = self.get_mainline(start_sq, direction, pieces);
-    let perps = self.get_all_perpendiculars(start_sq, direction, pieces);
-    for line in vec![mainline].iter().chain(perps.iter()).filter(|line| line.len() > 1) {
-      score = score + line.len() + (if line.len() == 6 { 6 } else { 0 });
-    }
-    return score
-  }
-
-  pub fn put(&mut self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) -> Score {
+  pub fn put(&mut self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) {
     // compute the new array
     let squares = direction.apply_all(start_sq, pieces.len());
     for (&(x,y),&piece) in squares.iter().zip(pieces.iter()) {
@@ -220,8 +190,6 @@ impl Board {
     // update the bounding box.
     self.stretch_bounding_box(squares[0]);
     self.stretch_bounding_box(squares[pieces.len()-1]);
-
-    return self.compute_score(start_sq, direction, pieces);
   }
 
   fn stretch_bounding_box(&mut self, (x,y): Square) {

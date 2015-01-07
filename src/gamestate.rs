@@ -65,8 +65,7 @@ impl GameState {
                 // store official to return
                 let place_pieces = Move::PlacePieces(square, (*direction).clone(), partial.pieces.clone());
                 // calculate full score
-                let mut score = mainline_score + perp_score + partial.perp_scores;
-                moves.push((score,place_pieces));
+                moves.push((mainline_score + perp_score + partial.perp_scores, place_pieces));
 
                 // put new partials
                 'outer: for next_piece in self.players[self.turn].bag.iter() {
@@ -87,10 +86,10 @@ impl GameState {
     return moves
   }
 
-  pub fn apply_move(&mut self, chosen_move: &Move)  {
+  pub fn apply_move(&mut self, chosen_move: &Move, score: Score)  {
     match chosen_move {
       &Move::PlacePieces(sq, ref dir, ref pieces_to_place) => {
-        let score_increment = self.board.put(sq, dir, pieces_to_place);
+        self.board.put(sq, dir, pieces_to_place);
 
         let mut depleted_player_bag:Vec<Piece> = Vec::new();
         'outer: for existing_piece in self.players[self.turn].bag.iter() {
@@ -103,7 +102,7 @@ impl GameState {
         }
 
         self.players[self.turn] = PlayerState {
-          score: self.players[self.turn].score + score_increment,
+          score: self.players[self.turn].score + score,
           bag: piece::resupply_player_mutate(depleted_player_bag, &mut self.bag),
         };
       },
