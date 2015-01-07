@@ -1,7 +1,7 @@
-use components::{Board, Move};
+use components::{Board, Move, PartialScored};
 use piece::{Bag, Piece};
 use piece;
-use player::PlayerState;
+use player::{PlayerState, Score};
 use std::collections::RingBuf;
 
 
@@ -11,6 +11,7 @@ pub struct GameState {
   bag: Bag,
   pub turn: uint,
 }
+
 
 impl GameState {
 
@@ -30,42 +31,53 @@ impl GameState {
     }
   }
 
-  pub fn generate_moves(&self) -> Vec<Move> {
-    let mut moves:Vec<Move> = Vec::new();
+  pub fn generate_moves(&self) -> Vec<(Score,Move)> {
+    let mut moves:Vec<(Score,Move)> = Vec::new();
     if self.bag.len() > 0 {
-      moves.push(Move::SwapPieces)
+      moves.push((0,Move::SwapPieces))
     }
 
-    let mut initial_queue = RingBuf::new();
-    for piece in self.players[self.turn].bag.iter() {
-      let singleton: Vec<Piece> = vec![*piece];
-      initial_queue.push_back(singleton);
-    }
 
     // figure out possible start squares (and directions).
     for &(square, ref direction) in self.board.get_start_squares().iter() {
       // initialize queue with singletons
-      let mut pieces_queue = initial_queue.clone();
+
+      let mut pieces_queue = RingBuf::new();
+      for piece in self.players[self.turn].bag.iter() {
+        let initial_singleton = PartialScored {
+          pieces: vec![*piece],
+          mainline_score: 0,
+          perp_scores: 0,
+          last_square: square,
+        };
+        pieces_queue.push_back(initial_singleton);
+      }
       // figure out any possible moves starting at this start square and direction, add to `moves`
       loop {
         match pieces_queue.pop_front() {
           None => break,
-          Some(ref piece_vector) => {
-            let place_pieces = Move::PlacePieces(square, (*direction).clone(), (*piece_vector).clone());
+          // Some(ref piece_vector) => {
+          Some(ref partial) => {
 
-            if self.board.allows_move(&place_pieces) {
-              moves.push(place_pieces);
+            match self.board.allows(square, direction, partial) {
+              None => {}
+              Some((mainline_score, perp_score)) => {
+                // store official to return
+                let place_pieces = Move::PlacePieces(square, (*direction).clone(), partial.pieces.clone());
+                // calculate full score
+                let mut score = mainline_score + perp_score + partial.perp_scores;
+                moves.push((score,place_pieces));
 
-              // put longer sequences back in the queue (no duplicates allowed!)
-              'outer: for next_piece in self.players[self.turn].bag.iter() {
-                for already in piece_vector.iter() {
-                  if *next_piece == *already {
-                    continue 'outer
+                // put new partials
+                'outer: for next_piece in self.players[self.turn].bag.iter() {
+                  for already in partial.pieces.iter() {
+                    if *next_piece == *already {
+                      continue 'outer
+                    }
                   }
+                  let extended_partial = partial.extend(mainline_score, perp_score, direction, *next_piece);
+                  pieces_queue.push_back(extended_partial);
                 }
-                let mut appended = piece_vector.clone();
-                appended.push(*next_piece);
-                pieces_queue.push_back(appended);
               }
             }
           },

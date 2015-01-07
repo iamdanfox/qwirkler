@@ -18,11 +18,7 @@ fn main() {
     // println!("\n\n{}\n", game_state.board);
     // println!("{}: player {} turn (score = {})", i, game_state.turn, game_state.players[game_state.turn].score);
 
-    let moves:Vec<(int, Move)> = game_state
-      .generate_moves()
-      .into_iter()
-      .map(|mv| (game_state.board.score_move(&mv) as int, mv))
-      .collect();
+    let moves:Vec<(uint, Move)> = game_state.generate_moves();
 
     let mut best = None;
     for pair in moves.iter() {

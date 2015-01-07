@@ -12,6 +12,27 @@ pub enum Move {
   PlacePieces(Square, Direction, Vec<Piece>)
 }
 
+#[derive(Clone, Show)]
+pub struct PartialScored {
+  pub pieces: Vec<Piece>,
+  pub last_square: Square,
+  pub mainline_score: Score,
+  pub perp_scores: Score
+}
+
+impl PartialScored {
+  pub fn extend(&self, new_mainline_score:uint, new_perp_score:uint, direction:&Direction, next_piece:Piece) -> PartialScored {
+    let mut appended = self.pieces.clone();
+    appended.push(next_piece);
+
+    return PartialScored {
+      pieces: appended,
+      last_square: direction.apply(self.last_square),
+      mainline_score: new_mainline_score,
+      perp_scores: self.perp_scores + new_perp_score,
+    };
+  }
+}
 
 pub struct Board {
   board: [[Piece; DIM_2]; DIM_2],
@@ -80,40 +101,32 @@ impl Board {
     return self.board[(x+DIM) as uint][(y+DIM) as uint];
   }
 
-  pub fn allows_move(&self, m: &Move) -> bool {
-    match *m {
-      Move::SwapPieces => return true,
-      Move::PlacePieces(start_sq, ref direction, ref pieces) => {
-        let all_squares = direction.apply_all(start_sq, pieces.len());
-        let last_square:Square = all_squares[pieces.len() - 1];
-
-        // check the last piece is laid onto an empty square.
-        if !piece::is_blank(self.get(last_square)) {
-          return false
-        }
-
-        // do a preliminary sanity check on `pieces`
-        if !piece::valid_line(pieces) {
-          return false
-        }
-
-        // since the prefix of this line was already passed validation,
-        // we just need to check the last perpendicular.
-        let last_piece:Piece = pieces[pieces.len()-1];
-        let line = self.perp_line(direction, last_square, last_piece);
-        if !piece::valid_line(&line) {
-          return false
-        }
-
-        // do a full mainline check
-        let mainline = self.get_mainline(start_sq, direction, pieces);
-        if !piece::valid_line(&mainline) {
-          return false;
-        }
-
-        return true
-      },
+  pub fn allows(&self, start_sq:Square, direction:&Direction, partial:&PartialScored) -> Option<(Score,Score)> {
+    if !piece::is_blank(self.get(partial.last_square)) {
+      return None
     }
+
+    // do a full mainline check
+    let mainline = self.get_mainline(start_sq, direction, &partial.pieces);
+    if !piece::valid_line(&mainline) {
+      return None;
+    }
+    let new_mainline_score = mainline.len() + if mainline.len() == 6 { 6 } else { 0 };
+
+    // since the prefix of this line was already passed validation,
+    // we just need to check the last perpendicular.
+    let last_piece = partial.pieces[partial.pieces.len()-1];
+    let line = self.perp_line(direction, partial.last_square, last_piece);
+    if !piece::valid_line(&line) {
+      return None
+    }
+    let new_perp_score = if line.len() > 1 {
+      line.len() + if line.len() == 6 { 6 } else { 0 }
+    } else {
+      0 // ensures we don't double count each piece!
+    };
+
+    return Some((new_mainline_score, new_perp_score));
   }
 
   fn get_mainline(&self, start_sq:Square, direction:&Direction, pieces:&Vec<Piece>) -> Vec<Piece> {
