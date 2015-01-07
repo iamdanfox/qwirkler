@@ -85,9 +85,12 @@ impl Board {
       return None
     }
 
+    // TODO: build a LineValidator struct that stores first element, already_seen and length.
+    // save a LineValidator in the partial so that we don't duplicate work on the mainline each time.
+
     // do a full mainline check
     let mainline = self.get_mainline(start_sq, direction, &partial.pieces);
-    if !piece::valid_line(&mainline) { // TODO this is duplicating work on each iteration.
+    if !piece::valid_line(&mainline) {
       return None;
     }
     let new_mainline_score = mainline.len() + if mainline.len() == 6 { 6 } else { 0 };

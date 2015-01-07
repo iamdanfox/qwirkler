@@ -2,7 +2,7 @@
 pub type Square = (int,int);
 
 #[derive(Show, Clone)]
-pub enum Direction {
+pub enum Direction { // size_of::<Directio>() = 1 !!!
   U, D, L, R
 }
 
