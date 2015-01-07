@@ -1,4 +1,5 @@
-use components::{Board, Move, PartialScored};
+use components::{Board, Move};
+use partial::PartialScored;
 use piece::{Bag, Piece};
 use piece;
 use player::{PlayerState, Score};
@@ -31,20 +32,22 @@ impl GameState {
     }
   }
 
+  // TODO re-use code between generate_best_move and generate_moves
   pub fn generate_best_move(&self) -> Option<(Score,Move)> {
     let mut best_score = 0;
     let mut best_move = Move::SwapPieces;
 
+    let mut queue = RingBuf::new();
+
     // figure out possible start squares (and directions).
     for &(square, ref direction) in self.board.get_start_squares().iter() {
       // initialize queue with singletons
-      let mut pieces_queue = RingBuf::new();
-      for piece in self.players[self.turn].bag.iter() {
-        pieces_queue.push_back(PartialScored::new(*piece, square));
+      for &piece in self.players[self.turn].bag.iter() {
+        queue.push_back(PartialScored::new(piece, square));
       }
       // figure out any possible moves starting at this start square and direction, add to `moves`
       loop {
-        match pieces_queue.pop_front() {
+        match queue.pop_front() {
           None => break,
           // Some(ref piece_vector) => {
           Some(ref partial) => {
@@ -60,14 +63,14 @@ impl GameState {
                 }
 
                 // put new partials back in
-                'outer: for next_piece in self.players[self.turn].bag.iter() {
-                  for already in partial.pieces.iter() {
-                    if *next_piece == *already {
+                'outer: for &next_piece in self.players[self.turn].bag.iter() {
+                  for &already in partial.pieces.iter() {
+                    if next_piece == already {
                       continue 'outer
                     }
                   }
-                  let extended_partial = partial.extend(mainline_score, perp_score, direction, *next_piece);
-                  pieces_queue.push_back(extended_partial);
+                  let extended_partial = partial.extend(mainline_score, perp_score, direction, next_piece);
+                  queue.push_back(extended_partial);
                 }
               }
             }

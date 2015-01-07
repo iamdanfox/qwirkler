@@ -1,12 +1,13 @@
 use gamestate::GameState;
-use components::Move;
-use player::Score;
+// use components::Move;
+// use player::Score;
 
 mod piece;
 mod components;
 mod gamestate;
 mod direction;
 mod player;
+mod partial;
 
 
 fn main() {

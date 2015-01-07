@@ -3,6 +3,7 @@ use piece::Piece;
 use direction::{Square, Direction};
 use std::{fmt, string};
 use player::Score;
+use partial::PartialScored;
 use std::collections::HashSet;
 
 
@@ -10,37 +11,6 @@ use std::collections::HashSet;
 pub enum Move {
   SwapPieces,
   PlacePieces(Square, Direction, Vec<Piece>)
-}
-
-#[derive(Show)]
-pub struct PartialScored {
-  pub pieces: Vec<Piece>,
-  pub last_square: Square,
-  pub mainline_score: Score,
-  pub perp_scores: Score
-}
-
-impl PartialScored {
-  pub fn new(piece:Piece, square:Square) -> PartialScored {
-    return PartialScored {
-      pieces: vec![piece],
-      mainline_score: 0,
-      perp_scores: 0,
-      last_square: square,
-    };
-  }
-
-  pub fn extend(&self, new_mainline_score:uint, new_perp_score:uint, direction:&Direction, next_piece:Piece) -> PartialScored {
-    let mut appended = self.pieces.clone();
-    appended.push(next_piece);
-
-    return PartialScored {
-      pieces: appended,
-      last_square: direction.apply(self.last_square),
-      mainline_score: new_mainline_score,
-      perp_scores: self.perp_scores + new_perp_score,
-    };
-  }
 }
 
 pub struct Board {
@@ -117,7 +87,7 @@ impl Board {
 
     // do a full mainline check
     let mainline = self.get_mainline(start_sq, direction, &partial.pieces);
-    if !piece::valid_line(&mainline) {
+    if !piece::valid_line(&mainline) { // TODO this is duplicating work on each iteration.
       return None;
     }
     let new_mainline_score = mainline.len() + if mainline.len() == 6 { 6 } else { 0 };
@@ -126,7 +96,7 @@ impl Board {
     // we just need to check the last perpendicular.
     let last_piece = partial.pieces[partial.pieces.len()-1];
     let line = self.perp_line(direction, partial.last_square, last_piece);
-    if !piece::valid_line(&line) {
+    if !piece::valid_line(&line) { // TODO: introduce laziness! (we could return false without reading all)
       return None
     }
     let new_perp_score = if line.len() > 1 {
