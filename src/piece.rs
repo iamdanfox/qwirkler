@@ -93,3 +93,50 @@ fn all_same_shape(line: &Vec<Piece>) -> bool {
   }
   return true
 }
+
+fn compatible(piece1: Piece, piece2: Piece) -> bool {
+  if piece1/10 == piece2/10 {
+    return true
+  } else {
+    if piece1%10 == piece2%10 {
+      return true
+    } else {
+      return false
+    }
+  }
+}
+
+// this seems slow.
+pub struct LineValidator {
+  seen_already: [bool; 67],
+  first_piece: Piece,
+  length: uint,
+}
+
+impl LineValidator {
+  pub fn new(first_piece: Piece) -> LineValidator {
+    return LineValidator {
+      seen_already: [false; 67],
+      first_piece: first_piece,
+      length: 1,
+    }
+  }
+
+  pub fn extend(&mut self, new_piece: Piece) -> bool {
+    if self.length == 6 {
+      return false
+    } else {
+      if self.seen_already[new_piece] {
+        return false
+      } else {
+        if !compatible(self.first_piece, new_piece) {
+          return false
+        } else {
+          self.length = self.length + 1;
+          self.seen_already[new_piece] = true;
+          return true
+        }
+      }
+    }
+  }
+}
