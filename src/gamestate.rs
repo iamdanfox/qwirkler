@@ -37,20 +37,12 @@ impl GameState {
       moves.push((0,Move::SwapPieces))
     }
 
-
     // figure out possible start squares (and directions).
     for &(square, ref direction) in self.board.get_start_squares().iter() {
       // initialize queue with singletons
-
       let mut pieces_queue = RingBuf::new();
       for piece in self.players[self.turn].bag.iter() {
-        let initial_singleton = PartialScored {
-          pieces: vec![*piece],
-          mainline_score: 0,
-          perp_scores: 0,
-          last_square: square,
-        };
-        pieces_queue.push_back(initial_singleton);
+        pieces_queue.push_back(PartialScored::new(*piece, square));
       }
       // figure out any possible moves starting at this start square and direction, add to `moves`
       loop {
@@ -62,12 +54,11 @@ impl GameState {
             match self.board.allows(square, direction, partial) {
               None => {}
               Some((mainline_score, perp_score)) => {
-                // store official to return
+                // calculate full score and return move
                 let place_pieces = Move::PlacePieces(square, (*direction).clone(), partial.pieces.clone());
-                // calculate full score
                 moves.push((mainline_score + perp_score + partial.perp_scores, place_pieces));
 
-                // put new partials
+                // put new partials back in
                 'outer: for next_piece in self.players[self.turn].bag.iter() {
                   for already in partial.pieces.iter() {
                     if *next_piece == *already {

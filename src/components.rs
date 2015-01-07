@@ -21,6 +21,15 @@ pub struct PartialScored {
 }
 
 impl PartialScored {
+  pub fn new(piece:Piece, square:Square) -> PartialScored {
+    return PartialScored {
+      pieces: vec![piece],
+      mainline_score: 0,
+      perp_scores: 0,
+      last_square: square,
+    };
+  }
+
   pub fn extend(&self, new_mainline_score:uint, new_perp_score:uint, direction:&Direction, next_piece:Piece) -> PartialScored {
     let mut appended = self.pieces.clone();
     appended.push(next_piece);
