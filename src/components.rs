@@ -216,16 +216,23 @@ impl Board {
 }
 
 
-struct SquareIterator {
-  next_sq: Square,
+struct BlankSquareIterator<'a> {
+  sq: Square,
   direction: Direction,
+  board: &'a Board
 }
 
-impl Iterator for SquareIterator {
-  type Item = Square;
-  fn next(&mut self) -> Option<Square> {
-    let current_sq = self.next_sq;
-    self.next_sq = self.direction.apply(self.next_sq);
-    return Some(current_sq)
+impl<'a> Iterator for BlankSquareIterator<'a> {
+  type Item = Piece;
+
+  fn next(&mut self) -> Option<Piece> {
+    let next_sq = self.direction.apply(self.sq);
+    let contents = self.board.get(next_sq);
+    if contents.is_blank() {
+      return None
+    } else {
+      self.sq = next_sq;
+      return Some(contents)
+    }
   }
 }
