@@ -170,7 +170,6 @@ pub fn valid_line2(line: &Vec<Piece>) -> bool {
   return true
 }
 
-// this seems slow.
 pub struct LineValidator {
   seen_already: [bool; 67],
   first_piece: Piece,
@@ -178,10 +177,23 @@ pub struct LineValidator {
   length: uint,
 }
 
+impl Clone for LineValidator {
+  fn clone(&self) -> LineValidator {
+    return LineValidator {
+      seen_already: self.seen_already,
+      first_piece: self.first_piece,
+      second_piece: self.second_piece,
+      length: self.length,
+    }
+  }
+}
+
 impl LineValidator {
   pub fn new(first_piece: Piece) -> LineValidator {
+    let mut seen_already = [false; 67];
+    seen_already[index(first_piece)] = true;
     return LineValidator {
-      seen_already: [false; 67],
+      seen_already: seen_already,
       first_piece: first_piece,
       second_piece: None,
       length: 1,

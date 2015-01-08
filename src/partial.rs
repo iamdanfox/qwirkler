@@ -1,13 +1,13 @@
-use piece::Piece;
+use piece::{Piece, LineValidator};
 use player::Score;
 use direction::{Square, Direction};
 
-#[derive(Show)]
 pub struct PartialScored {
   pub pieces: Vec<Piece>,
   pub last_square: Square,
   pub mainline_score: Score,
-  pub perp_scores: Score
+  pub perp_scores: Score,
+  main_validator: LineValidator
 }
 
 impl PartialScored {
@@ -17,6 +17,7 @@ impl PartialScored {
       mainline_score: 0,
       perp_scores: 0,
       last_square: square,
+      main_validator: LineValidator::new(piece),
     };
   }
 
@@ -29,6 +30,7 @@ impl PartialScored {
       last_square: direction.apply(self.last_square),
       mainline_score: new_mainline_score,
       perp_scores: self.perp_scores + new_perp_score,
+      main_validator: self.main_validator.clone(),
     };
   }
 }
