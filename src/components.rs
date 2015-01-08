@@ -87,7 +87,7 @@ impl Board {
 
     // do a full mainline check
     let mainline = self.get_mainline(start_sq, direction, &partial.pieces);
-    if !piece::valid_line(&mainline) {
+    if !piece::valid_line2(&mainline) {
       return None;
     }
     let new_mainline_score = mainline.len() + if mainline.len() == 6 { 6 } else { 0 };

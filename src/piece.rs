@@ -147,10 +147,10 @@ fn all_same_shape(line: &Vec<Piece>) -> bool {
 }
 
 fn compatible(piece1: Piece, piece2: Piece) -> bool {
-  if piece1/10 == piece2/10 {
+  if piece1.colour() == piece2.colour() {
     return true
   } else {
-    if piece1%10 == piece2%10 {
+    if piece1.shape() == piece2.shape() {
       return true
     } else {
       return false
@@ -158,10 +158,23 @@ fn compatible(piece1: Piece, piece2: Piece) -> bool {
   }
 }
 
+
+#[inline(always)]
+pub fn valid_line2(line: &Vec<Piece>) -> bool {
+  let mut lv = LineValidator::new(line[0]);
+  for i in range(1u, line.len()) {
+    if !lv.accepts(line[i]) {
+      return false
+    }
+  }
+  return true
+}
+
 // this seems slow.
 pub struct LineValidator {
   seen_already: [bool; 67],
   first_piece: Piece,
+  second_piece: Option<Piece>,
   length: uint,
 }
 
@@ -170,24 +183,36 @@ impl LineValidator {
     return LineValidator {
       seen_already: [false; 67],
       first_piece: first_piece,
+      second_piece: None,
       length: 1,
     }
   }
 
-  pub fn extend(&mut self, new_piece: Piece) -> bool {
+  pub fn accepts(&mut self, new_piece: Piece) -> bool {
     if self.length == 6 {
       return false
     } else {
-      if self.seen_already[new_piece] {
+      if self.seen_already[index(new_piece)] {
         return false
       } else {
-        if !compatible(self.first_piece, new_piece) {
-          return false
-        } else {
-          self.length = self.length + 1;
-          self.seen_already[new_piece] = true;
-          return true
-        }
+        match self.second_piece {
+          None => {
+            if !compatible(self.first_piece, new_piece) {
+              return false
+            }
+            self.second_piece = Some(new_piece);
+          },
+          Some(p2) => {
+            let same_colour = self.first_piece.colour() == new_piece.colour() && p2.colour() == new_piece.colour();
+            let same_shape =  self.first_piece.shape() == new_piece.shape() && p2.shape() == new_piece.shape();
+            if !same_colour && !same_shape {
+              return false
+            }
+          }
+        };
+        self.length = self.length + 1;
+        self.seen_already[index(new_piece)] = true;
+        return true
       }
     }
   }
