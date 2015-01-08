@@ -1,5 +1,6 @@
 use piece;
-use piece::{Piece, LineValidator};
+use piece::{Piece};
+use linevalidator::LineValidator;
 use direction::{Square, Direction};
 use std::{fmt, string};
 use player::Score;
@@ -32,7 +33,7 @@ impl fmt::Show for Board {
     for y in range(self.min_y - 1, self.max_y + 2) {
       for x in range(self.min_x - 1, self.max_x + 2) {
         let piece = self.get((x,y));
-        if !piece::is_blank(piece) {
+        if !piece.is_blank() {
           output.push_str(piece.to_string().as_slice());
         } else {
           output.push_str("..");
@@ -64,7 +65,7 @@ impl Board {
 
     for direction in Direction::all().iter() {
       for &sq in self.perimeter.iter() {
-        if piece::is_blank(self.get(direction.apply(sq))) {
+        if self.get(direction.apply(sq)).is_blank() {
           result.push((sq,direction.clone()));
         }
       }
@@ -81,7 +82,7 @@ impl Board {
   }
 
   pub fn allows(&self, start_sq:Square, direction:&Direction, partial:&mut PartialScored) -> Option<(Score,Score)> {
-    if !piece::is_blank(self.get(partial.last_square)) {
+    if !self.get(partial.last_square).is_blank() {
       return None
     }
     let last_piece = partial.pieces[partial.pieces.len()-1];
@@ -100,11 +101,24 @@ impl Board {
         lv
       },
       Some(lv) => {
-        if !lv.accepts(last_piece) { // also updates lv.
-          return None
+        if self.get(direction.apply(partial.last_square)).is_blank() {
+          // blank space at the end - re-use the old LineValidator
+          if !lv.accepts(last_piece) { // also updates lv.
+            return None
+          }
+          new_mainline_score = lv.length + if lv.length == 6 { 6 } else { 0 };
+          None
+        } else {
+          // have to do a full mainline check.
+          // do a full mainline check
+          let mainline = self.get_mainline(start_sq, direction, &partial.pieces);
+          let lv = LineValidator::accept_all(&mainline);
+          if lv.is_none() {
+            return None // validation failed
+          }
+          new_mainline_score = mainline.len() + if mainline.len() == 6 { 6 } else { 0 };
+          lv
         }
-        new_mainline_score = lv.length + if lv.length == 6 { 6 } else { 0 };
-        None
       }
     };
 
@@ -151,7 +165,7 @@ impl Board {
   fn pieces_in_direction(&self, direction: &Direction, start: Square) -> Vec<Piece> {
     let mut sq = direction.apply(start);
     let mut pieces = vec![];
-    while !piece::is_blank(self.get(sq)) {
+    while !self.get(sq).is_blank() {
       pieces.push(self.get(sq));
       sq = direction.apply(sq);
     }
@@ -189,7 +203,7 @@ impl Board {
     }
 
     for &sq in candidates.iter() {
-      if piece::is_blank(self.get(sq)) {
+      if self.get(sq).is_blank() {
         self.perimeter.insert(sq);
       }
     }

@@ -9,6 +9,7 @@ mod direction;
 mod player;
 mod partial;
 mod bench;
+mod linevalidator;
 
 
 fn main() {

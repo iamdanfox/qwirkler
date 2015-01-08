@@ -1,4 +1,5 @@
-use piece::{Piece, LineValidator};
+use piece::{Piece};
+use linevalidator::LineValidator;
 use player::Score;
 use direction::{Square, Direction};
 
