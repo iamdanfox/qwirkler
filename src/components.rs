@@ -1,5 +1,5 @@
 use piece;
-use piece::Piece;
+use piece::{Piece, LineValidator};
 use direction::{Square, Direction};
 use std::{fmt, string};
 use player::Score;
@@ -80,21 +80,49 @@ impl Board {
     return self.board[(x+DIM) as uint][(y+DIM) as uint];
   }
 
-  pub fn allows(&self, start_sq:Square, direction:&Direction, partial:&PartialScored) -> Option<(Score,Score)> {
+  pub fn allows(&self, start_sq:Square, direction:&Direction, partial:&mut PartialScored) -> Option<(Score,Score)> {
     if !piece::is_blank(self.get(partial.last_square)) {
       return None
     }
+    let last_piece = partial.pieces[partial.pieces.len()-1];
+
+    // only do full mainline check once:
+    let mut new_mainline_score;
+    let new_validator:Option<LineValidator> = match partial.main_validator.as_mut() {
+      None => {
+        // do a full mainline check
+        let mainline = self.get_mainline(start_sq, direction, &partial.pieces);
+        let lv = LineValidator::accept_all(&mainline);
+        if lv.is_none() {
+          return None // validation failed
+        }
+        new_mainline_score = mainline.len() + if mainline.len() == 6 { 6 } else { 0 };
+        lv
+      },
+      Some(lv) => {
+        if !lv.accepts(last_piece) { // also updates lv.
+          return None
+        }
+        new_mainline_score = lv.length + if lv.length == 6 { 6 } else { 0 };
+        None
+      }
+    };
+
+    if !new_validator.is_none() {
+      partial.main_validator = new_validator;
+    }
+
+    // partial.main_validator = None;
 
     // do a full mainline check
-    let mainline = self.get_mainline(start_sq, direction, &partial.pieces);
-    if !piece::valid_line2(&mainline) {
-      return None;
-    }
-    let new_mainline_score = mainline.len() + if mainline.len() == 6 { 6 } else { 0 };
+    // let mainline = self.get_mainline(start_sq, direction, &partial.pieces);
+    // if !piece::valid_line2(&mainline) {
+    //   return None;
+    // }
+    // let new_mainline_score = mainline.len() + if mainline.len() == 6 { 6 } else { 0 };
 
     // since the prefix of this line was already passed validation,
     // we just need to check the last perpendicular.
-    let last_piece = partial.pieces[partial.pieces.len()-1];
     let line = self.perp_line(direction, partial.last_square, last_piece);
     if !piece::valid_line(&line) { // TODO: introduce laziness! (we could return false without reading all)
       return None

@@ -158,23 +158,11 @@ fn compatible(piece1: Piece, piece2: Piece) -> bool {
   }
 }
 
-
-#[inline(always)]
-pub fn valid_line2(line: &Vec<Piece>) -> bool {
-  let mut lv = LineValidator::new(line[0]);
-  for i in range(1u, line.len()) {
-    if !lv.accepts(line[i]) {
-      return false
-    }
-  }
-  return true
-}
-
 pub struct LineValidator {
   seen_already: [bool; 67],
   first_piece: Piece,
   second_piece: Option<Piece>,
-  length: uint,
+  pub length: uint,
 }
 
 impl Clone for LineValidator {
@@ -198,6 +186,16 @@ impl LineValidator {
       second_piece: None,
       length: 1,
     }
+  }
+
+  pub fn accept_all(line: &Vec<Piece>) -> Option<LineValidator> {
+    let mut lv = LineValidator::new(line[0]);
+    for i in range(1u, line.len()) {
+      if !lv.accepts(line[i]) {
+        return None
+      }
+    }
+    return Some(lv)
   }
 
   pub fn accepts(&mut self, new_piece: Piece) -> bool {
