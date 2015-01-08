@@ -162,27 +162,6 @@ impl Board {
     }
   }
 
-  fn get_mainline(&self, start_sq:Square, direction:&Direction, pieces:&Vec<Piece>) -> Vec<Piece> {
-    // compute mainline
-    let mut mainline:Vec<Piece> = Vec::new();
-    let before = self.pieces_in_direction(&direction.opposite(), start_sq);
-    mainline.push_all(before.as_slice());
-    mainline.push_all(pieces.as_slice());
-    let last_square:Square = direction.apply_all(start_sq, pieces.len())[pieces.len()-1];
-    let after = self.pieces_in_direction(direction, last_square);
-    mainline.push_all(after.as_slice());
-    return mainline;
-  }
-
-  fn pieces_in_direction(&self, direction: &Direction, start: Square) -> Vec<Piece> {
-    let iter = NonBlankIterator {
-      sq: start,
-      direction: direction.clone(),
-      board: self
-    };
-    return iter.collect();
-  }
-
   pub fn put(&mut self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) {
     // compute the new array
     let squares = direction.apply_all(start_sq, pieces.len());

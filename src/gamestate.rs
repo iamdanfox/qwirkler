@@ -92,52 +92,6 @@ impl GameState {
     }
   }
 
-  // pub fn generate_moves(&self) -> Vec<(Score,Move)> {
-  //   let mut moves:Vec<(Score,Move)> = Vec::new();
-  //   if self.bag.len() > 0 {
-  //     moves.push((0,Move::SwapPieces))
-  //   }
-
-  //   // figure out possible start squares (and directions).
-  //   for &(square, ref direction) in self.board.get_start_squares().iter() {
-  //     // initialize queue with singletons
-  //     let mut pieces_queue = RingBuf::new();
-  //     for piece in self.players[self.turn].bag.iter() {
-  //       pieces_queue.push_back(PartialScored::new(*piece, square));
-  //     }
-  //     // figure out any possible moves starting at this start square and direction, add to `moves`
-  //     loop {
-  //       match pieces_queue.pop_front() {
-  //         None => break,
-  //         // Some(ref piece_vector) => {
-  //         Some(ref partial) => {
-
-  //           match self.board.allows(square, direction, partial) {
-  //             None => {}
-  //             Some((mainline_score, perp_score)) => {
-  //               // calculate full score and return move
-  //               let place_pieces = Move::PlacePieces(square, (*direction).clone(), partial.pieces.clone());
-  //               moves.push((mainline_score + perp_score + partial.perp_scores, place_pieces));
-
-  //               // put new partials back in
-  //               'outer: for next_piece in self.players[self.turn].bag.iter() {
-  //                 for already in partial.pieces.iter() {
-  //                   if *next_piece == *already {
-  //                     continue 'outer
-  //                   }
-  //                 }
-  //                 let extended_partial = partial.extend(mainline_score, perp_score, direction, *next_piece);
-  //                 pieces_queue.push_back(extended_partial);
-  //               }
-  //             }
-  //           }
-  //         },
-  //       }
-  //     }
-  //   }
-  //   return moves
-  // }
-
   pub fn apply_move(&mut self, chosen_move: &Move, score: Score)  {
     match chosen_move {
       &Move::PlacePieces(sq, ref dir, ref pieces_to_place) => {
