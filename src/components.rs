@@ -91,7 +91,7 @@ impl Board {
     let mut new_mainline_score;
     let new_validator:Option<LineValidator> = match partial.main_validator.as_mut() {
       None => {
-        // do a full mainline check
+        // build validator and do a full mainline check
         let mainline = self.get_mainline(start_sq, direction, &partial.pieces);
         let lv = LineValidator::accept_all(&mainline);
         if lv.is_none() {

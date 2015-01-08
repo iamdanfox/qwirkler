@@ -36,7 +36,7 @@ impl Piece {
   }
 
   pub fn index(&self) -> uint {
-    return ((self.colour() * 10) + self.shape()) as uint
+    return 6*(self.colour() as uint-1) + (self.shape() as uint) - 1
   }
 
   pub fn to_string(&self) -> String {
