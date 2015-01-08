@@ -214,3 +214,18 @@ impl Board {
   }
 
 }
+
+
+struct SquareIterator {
+  next_sq: Square,
+  direction: Direction,
+}
+
+impl Iterator for SquareIterator {
+  type Item = Square;
+  fn next(&mut self) -> Option<Square> {
+    let current_sq = self.next_sq;
+    self.next_sq = self.direction.apply(self.next_sq);
+    return Some(current_sq)
+  }
+}
