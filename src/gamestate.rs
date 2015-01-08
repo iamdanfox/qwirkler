@@ -32,6 +32,14 @@ impl GameState {
     }
   }
 
+  pub fn total_score(&self) -> Score {
+    let mut sum = 0;
+    for player in self.players.iter() {
+      sum = sum + player.score;
+    }
+    return sum;
+  }
+
   // TODO re-use code between generate_best_move and generate_moves
   pub fn generate_best_move(&self) -> Option<(Score,Move)> {
     let mut best_score = 0;
