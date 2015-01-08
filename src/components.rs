@@ -1,4 +1,3 @@
-use piece;
 use piece::{Piece};
 use linevalidator::LineValidator;
 use direction::{Square, Direction};
@@ -48,7 +47,7 @@ impl fmt::Show for Board {
 
 impl Board {
   pub fn new() -> Board {
-    let blank = piece::blank();
+    let blank = Piece::blank();
     let new_board = [[blank; DIM_2]; DIM_2];
     Board {
       board: new_board,
@@ -129,19 +128,10 @@ impl Board {
       partial.main_validator = new_validator;
     }
 
-    // partial.main_validator = None;
-
-    // do a full mainline check
-    // let mainline = self.get_mainline(start_sq, direction, &partial.pieces);
-    // if !piece::valid_line2(&mainline) {
-    //   return None;
-    // }
-    // let new_mainline_score = mainline.len() + if mainline.len() == 6 { 6 } else { 0 };
-
     // since the prefix of this line was already passed validation,
     // we just need to check the last perpendicular.
     let line = self.perp_line(direction, partial.last_square, last_piece);
-    if !piece::valid_line(&line) { // TODO: introduce laziness! (we could return false without reading all)
+    if !LineValidator::valid_line(&line) { // TODO: introduce laziness! (we could return false without reading all)
       return None
     }
     let new_perp_score = if line.len() > 1 {

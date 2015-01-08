@@ -1,6 +1,5 @@
 use std::rand::{thread_rng, Rng};
 use std::fmt;
-use linevalidator::LineValidator;
 
 pub type Bag = Vec<Piece>;
 
@@ -17,7 +16,7 @@ impl Piece {
     }
   }
 
-  fn blank() -> Piece {
+  pub fn blank() -> Piece {
     return Piece {
       internal: 0
     }
@@ -69,17 +68,11 @@ impl PartialEq for Piece {
   }
 }
 
-
-
-
 pub fn make_bag() -> Bag {
   // this generates three copies of ij for i <- [1..6] and j <- [1..6]
   return range(0, 108).map(|i| Piece::new(1 + (i % 6), 1 + ((i / 6) % 6))).collect();
 }
 
-// TODO: try eliminating randomness for repeatable benchmarks
-
-#[inline(always)]
 pub fn resupply_player_mutate(player_bag: Bag, main_bag: &mut Bag) -> Bag {
   {
     let mut rng = thread_rng();
@@ -97,13 +90,3 @@ pub fn resupply_player_mutate(player_bag: Bag, main_bag: &mut Bag) -> Bag {
   return player_bag2
 }
 
-#[inline(always)]
-pub fn blank() -> Piece {
-  return Piece::blank()
-}
-
-#[inline(always)]
-pub fn valid_line(line: &Vec<Piece>) -> bool {
-  let lv = LineValidator::accept_all(line);
-  return !lv.is_none()
-}
