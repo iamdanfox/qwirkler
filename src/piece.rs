@@ -4,9 +4,6 @@ pub type Bag = Vec<Piece>;
 pub type Piece = uint;
 
 
-// TODO: use u8 to represent a piece... first 4 bits=colour, last 4 bits=shape... bitmask to extract
-// size_of uint is 8, size_of u8 is 1!!
-
 pub fn make_bag() -> Bag {
   // this generates three copies of ij for i <- [1..6] and j <- [1..6]
   range(0, 108).map(|i| 1 + (i % 6) + (10 + ((i / 6) * 10) % 60)).collect()

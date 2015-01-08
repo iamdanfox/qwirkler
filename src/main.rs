@@ -11,6 +11,10 @@ mod partial;
 
 
 fn main() {
+
+  // repeat_silently(100);
+  // return;
+
   let mut game_state = GameState::new(2);
   let mut i = 0u;
 
@@ -52,4 +56,18 @@ fn main() {
     i += 1;
   }
   println!("\n  total = {}", sum);
+}
+
+fn repeat_silently(x: int) {
+  for _ in range(0, x) {
+    let mut game_state = GameState::new(2);
+    loop {
+      match game_state.generate_best_move() {
+        None => break,
+        Some((score, chosen_move)) => {
+          game_state.apply_move(&chosen_move, score);
+        },
+      }
+    }
+  }
 }
