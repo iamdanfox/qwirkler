@@ -45,7 +45,19 @@ impl GameState {
     let mut best_score = 0;
     let mut best_move = Move::SwapPieces;
 
-    let mut queue = RingBuf::new();
+    // We use a RingBuf so that we can remove short ideas from the front
+    // and test them first, adding longer ones to the end. (Vec<...> doesn't allow this)
+    // Invariants for every partial in the queue:
+    //  * the prefix of partial.pieces has already been validated (so we just need to check the last piece)
+    //  * partial.last_square is the square that the last piece would fall on
+    //  * partial.main_validator is the result of validating everything before the start of the line,
+    //    and everything except the last element in the `pieces` vector (ie, it's None for singletons)
+    //  * partial.perp_scores stores the points that would be gained from any perpendicular lines that
+    //    this play would form.
+    let mut queue:RingBuf<PartialScored> = RingBuf::new();
+
+    // The PartialStruct data structure allows us to check increasingly long sequences of pieces
+    // without repeating any validation or scoring work when testing the long ones.
 
     // figure out possible start squares (and directions).
     for &(square, ref direction) in self.board.get_start_squares().iter() {

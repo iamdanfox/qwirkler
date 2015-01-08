@@ -88,31 +88,30 @@ impl Board {
 
     // only do full mainline check once:
     let mut new_mainline_score;
-    let new_validator:Option<LineValidator> = match partial.main_validator.as_mut() {
+    let first_validator:Option<LineValidator> = match partial.main_validator.as_mut() {
       None => {
         // since this is a singleton, we must build the validator
-        let mut lv = LineValidator::new(partial.pieces[0]);
+        let mut first_lv = LineValidator::new(partial.pieces[0]);
 
-        // check befores and afters
+        // check befores and afters (these will be empty for the first piece we lay down!)
         let mut count = 1;
         for p in self.pieces_in_direction2((*direction).clone(), start_sq).chain(self.pieces_in_direction2(direction.opposite(), start_sq)) {
-          if !lv.accepts(p) {
+          if !first_lv.accepts(p) {
             return None
           }
           count += 1;
         }
         new_mainline_score = count + if count == 6 { 6 } else { 0 };
-        Some(lv)
+        Some(first_lv) // overwrite the validator.
       },
       Some(lv) => {
+        if !lv.accepts(last_piece) { // also updates lv.
+          return None
+        }
+        // if the line doesn't end in a blank, we have to continue validating in that direction
         let after_last_square = direction.apply(partial.last_square);
-        if self.get(after_last_square).is_blank() {
-          // blank space at the end - re-use the old LineValidator
-          if !lv.accepts(last_piece) { // also updates lv.
-            return None
-          }
-        } else {
-          // otherwise, extend the mainline...
+        if !self.get(after_last_square).is_blank() {
+
           let mut curr_square = after_last_square;
           let mut curr_piece = self.get(curr_square);
           while !curr_piece.is_blank() {
@@ -125,33 +124,40 @@ impl Board {
           }
         }
         new_mainline_score = lv.length + if lv.length == 6 { 6 } else { 0 };
-        None
+        None // no need to overwrite the validator.
       }
     };
-
-    if !new_validator.is_none() {
-      partial.main_validator = new_validator;
+    if !first_validator.is_none() {
+      partial.main_validator = first_validator;
     }
 
     // since the prefix of this line was already passed validation,
     // we just need to check the last perpendicular.
+    let new_perp_score = match self.check_perpendicular(partial.last_square, direction, last_piece) {
+      None => return None, // validation failed,
+      Some(v) => v
+    };
+
+    return Some((new_mainline_score, new_perp_score));
+  }
+
+  // returns the score won from a perpendicular line or return None if it's invalid.
+  fn check_perpendicular(&self, square:Square, direction:&Direction, piece:Piece) -> Option<Score> {
     let mut perp_size = 1;
-    let mut perp_lv = LineValidator::new(last_piece);
+    let mut perp_lv = LineValidator::new(piece);
     let (d1,d2) = direction.perpendiculars();
-    for p in self.pieces_in_direction2(d1, partial.last_square).chain(self.pieces_in_direction2(d2, partial.last_square)) {
+    for p in self.pieces_in_direction2(d1, square).chain(self.pieces_in_direction2(d2, square)) {
       if !perp_lv.accepts(p) {
         return None
       }
       perp_size += 1;
-    };
+    }
 
-    let new_perp_score = if perp_size > 1 {
-      perp_size + if perp_size == 6 { 6 } else { 0 }
+    if perp_size > 1 {
+      return Some(perp_size + if perp_size == 6 { 6 } else { 0 });
     } else {
-      0 // ensures we don't double count each piece!
-    };
-
-    return Some((new_mainline_score, new_perp_score));
+      return Some(0) // ensures we don't double count each piece!
+    }
   }
 
   fn pieces_in_direction2(&self, direction: Direction, start: Square) -> NonBlankIterator {
