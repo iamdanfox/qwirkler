@@ -101,24 +101,27 @@ impl Board {
         lv
       },
       Some(lv) => {
-        if self.get(direction.apply(partial.last_square)).is_blank() {
+        let after_last_square = direction.apply(partial.last_square);
+        if self.get(after_last_square).is_blank() {
           // blank space at the end - re-use the old LineValidator
           if !lv.accepts(last_piece) { // also updates lv.
             return None
           }
-          new_mainline_score = lv.length + if lv.length == 6 { 6 } else { 0 };
-          None
         } else {
-          // have to do a full mainline check.
-          // do a full mainline check
-          let mainline = self.get_mainline(start_sq, direction, &partial.pieces);
-          let lv = LineValidator::accept_all(&mainline);
-          if lv.is_none() {
-            return None // validation failed
+          // otherwise, extend the mainline...
+          let mut curr_square = after_last_square;
+          let mut curr_piece = self.get(curr_square);
+          while !curr_piece.is_blank() {
+            if !lv.accepts(curr_piece) {
+              return None
+            } else {
+              curr_square = direction.apply(curr_square);
+              curr_piece = self.get(curr_square);
+            }
           }
-          new_mainline_score = mainline.len() + if mainline.len() == 6 { 6 } else { 0 };
-          lv
         }
+        new_mainline_score = lv.length + if lv.length == 6 { 6 } else { 0 };
+        None
       }
     };
 
