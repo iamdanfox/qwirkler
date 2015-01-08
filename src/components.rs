@@ -80,7 +80,7 @@ impl Board {
     return self.board[(x+DIM) as uint][(y+DIM) as uint];
   }
 
-  pub fn allows(&self, start_sq:Square, direction:&Direction, partial:&mut Partial) -> Option<(Score,Score)> {
+  pub fn allows(&self, partial:&mut Partial) -> Option<(Score,Score)> {
     if !self.get(partial.last_square).is_blank() {
       return None
     }
@@ -90,9 +90,9 @@ impl Board {
     let (new_mainline_score, overwrite_validator):(Score, Option<LineValidator>) = match partial.main_validator.as_mut() {
       None => {
         // we must build the validator (this implies we have a singleton)
-        match self.check_first_mainline(start_sq, direction, partial.pieces[0]) {
+        match self.check_first_mainline(partial.start_square, &partial.direction, partial.pieces[0]) {
           None => return None, // validation failed
-          Some((line_validator,score)) => {
+          Some((score,line_validator)) => {
             (score,Some(line_validator)) // this validator gets saved in the partial.
           }
         }
@@ -102,9 +102,9 @@ impl Board {
           return None
         }
         // if the line doesn't end in a blank, we have to continue validating in that direction
-        let after_line = direction.apply(partial.last_square);
+        let after_line = partial.direction.apply(partial.last_square);
         if !self.get(after_line).is_blank() {
-          if !self.continue_validating(after_line, direction, lv) {
+          if !self.continue_validating(after_line, &partial.direction, lv) {
             return None
           }
         }
@@ -118,7 +118,7 @@ impl Board {
 
     // since the prefix of this line was already passed validation,
     // we just need to check the last perpendicular.
-    let new_perp_score = match self.check_perpendicular(partial.last_square, direction, last_piece) {
+    let new_perp_score = match self.check_perpendicular(partial.last_square, &partial.direction, last_piece) {
       None => return None, // validation failed,
       Some(v) => v
     };
@@ -127,7 +127,7 @@ impl Board {
   }
 
   // returns None if it failed validation
-  fn check_first_mainline(&self, square:Square, direction:&Direction, first_piece:Piece) -> Option<(LineValidator, Score)> {
+  fn check_first_mainline(&self, square:Square, direction:&Direction, first_piece:Piece) -> Option<(Score, LineValidator)> {
     let mut first_lv = LineValidator::new(first_piece);
     let mut count = 1;
     for p in self.non_blank_iter(square, (*direction).clone()).chain(self.non_blank_iter(square, direction.opposite())) {
@@ -137,7 +137,7 @@ impl Board {
       count += 1;
     }
     let first_mainline_score = count + if count == 6 { 6 } else { 0 };
-    return Some((first_lv, first_mainline_score))
+    return Some((first_mainline_score, first_lv))
   }
 
   fn continue_validating(&self, after_line:Square, direction: &Direction, lv: &mut LineValidator) -> bool {

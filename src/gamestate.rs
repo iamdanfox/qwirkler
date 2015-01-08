@@ -63,7 +63,7 @@ impl GameState {
     for &(square, ref direction) in self.board.get_start_squares().iter() {
       // initialize queue with singletons
       for &piece in self.players[self.turn].bag.iter() {
-        queue.push_back(Partial::new(piece, square));
+        queue.push_back(Partial::new(square, direction, piece));
       }
       // figure out any possible moves starting at this start square and direction, add to `moves`
       loop {
@@ -71,16 +71,9 @@ impl GameState {
           None => break,
           Some(partial) => {
 
-            match self.board.allows(square, direction, partial) {
+            match self.board.allows(partial) {
               None => {}
               Some((mainline_score, perp_score)) => {
-                // calculate full score and return move
-                let total_score = mainline_score + perp_score + partial.perp_scores;
-                if total_score > best_score {
-                  best_score = total_score;
-                  best_move = Move::PlacePieces(square, (*direction).clone(), partial.pieces.clone());
-                }
-
                 // put new partials back in
                 'outer: for &next_piece in self.players[self.turn].bag.iter() {
                   for &already in partial.pieces.iter() {
@@ -88,8 +81,18 @@ impl GameState {
                       continue 'outer
                     }
                   }
-                  let extended_partial = partial.extend(mainline_score, perp_score, direction, next_piece);
+                  let mut extended_partial = partial.clone();
+                  extended_partial.pieces.push(next_piece);
+                  extended_partial.mainline_score = mainline_score;
+                  extended_partial.perp_scores += perp_score;
                   queue.push_back(extended_partial);
+                }
+
+                // calculate full score and return move
+                let total_score = mainline_score + perp_score + partial.perp_scores;
+                if total_score > best_score {
+                  best_score = total_score;
+                  best_move = partial.save_as_move();
                 }
               }
             }
