@@ -90,14 +90,19 @@ impl Board {
     let mut new_mainline_score;
     let new_validator:Option<LineValidator> = match partial.main_validator.as_mut() {
       None => {
-        // build validator and do a full mainline check
-        let mainline = self.get_mainline(start_sq, direction, &partial.pieces);
-        let lv = LineValidator::accept_all(&mainline);
-        if lv.is_none() {
-          return None // validation failed
+        // since this is a singleton, we must build the validator
+        let mut lv = LineValidator::new(partial.pieces[0]);
+
+        // check befores and afters
+        let mut count = 1;
+        for p in self.pieces_in_direction2((*direction).clone(), start_sq).chain(self.pieces_in_direction2(direction.opposite(), start_sq)) {
+          if !lv.accepts(p) {
+            return None
+          }
+          count += 1;
         }
-        new_mainline_score = mainline.len() + if mainline.len() == 6 { 6 } else { 0 };
-        lv
+        new_mainline_score = count + if count == 6 { 6 } else { 0 };
+        Some(lv)
       },
       Some(lv) => {
         let after_last_square = direction.apply(partial.last_square);
@@ -133,18 +138,12 @@ impl Board {
     let mut perp_size = 1;
     let mut perp_lv = LineValidator::new(last_piece);
     let (d1,d2) = direction.perpendiculars();
-    for p in self.pieces_in_direction2(d1, partial.last_square) {
+    for p in self.pieces_in_direction2(d1, partial.last_square).chain(self.pieces_in_direction2(d2, partial.last_square)) {
       if !perp_lv.accepts(p) {
         return None
       }
       perp_size += 1;
     };
-    for p in self.pieces_in_direction2(d2, partial.last_square) {
-      if !perp_lv.accepts(p) {
-        return None
-      }
-      perp_size += 1;
-    }
 
     let new_perp_score = if perp_size > 1 {
       perp_size + if perp_size == 6 { 6 } else { 0 }
