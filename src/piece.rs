@@ -55,9 +55,6 @@ impl PartialEq for Piece {
 
 
 
-
-
-
 pub fn make_bag() -> Bag {
   // this generates three copies of ij for i <- [1..6] and j <- [1..6]
   return range(0, 108).map(|i| Piece::new(1 + (i % 6), 1 + ((i / 6) % 6))).collect();
