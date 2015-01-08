@@ -130,17 +130,37 @@ impl Board {
 
     // since the prefix of this line was already passed validation,
     // we just need to check the last perpendicular.
-    let line = self.perp_line(direction, partial.last_square, last_piece);
-    if !LineValidator::valid_line(&line) { // TODO: introduce laziness! (we could return false without reading all)
-      return None
+    let mut perp_size = 1;
+    let mut perp_lv = LineValidator::new(last_piece);
+    let (d1,d2) = direction.perpendiculars();
+    for p in self.pieces_in_direction2(d1, partial.last_square) {
+      if !perp_lv.accepts(p) {
+        return None
+      }
+      perp_size += 1;
+    };
+    for p in self.pieces_in_direction2(d2, partial.last_square) {
+      if !perp_lv.accepts(p) {
+        return None
+      }
+      perp_size += 1;
     }
-    let new_perp_score = if line.len() > 1 {
-      line.len() + if line.len() == 6 { 6 } else { 0 }
+
+    let new_perp_score = if perp_size > 1 {
+      perp_size + if perp_size == 6 { 6 } else { 0 }
     } else {
       0 // ensures we don't double count each piece!
     };
 
     return Some((new_mainline_score, new_perp_score));
+  }
+
+  fn pieces_in_direction2(&self, direction: Direction, start: Square) -> NonBlankIterator {
+    return NonBlankIterator {
+      sq: start,
+      direction: direction,
+      board: self
+    }
   }
 
   fn get_mainline(&self, start_sq:Square, direction:&Direction, pieces:&Vec<Piece>) -> Vec<Piece> {
@@ -156,22 +176,12 @@ impl Board {
   }
 
   fn pieces_in_direction(&self, direction: &Direction, start: Square) -> Vec<Piece> {
-    let mut sq = direction.apply(start);
-    let mut pieces = vec![];
-    while !self.get(sq).is_blank() {
-      pieces.push(self.get(sq));
-      sq = direction.apply(sq);
-    }
-    return pieces;
-  }
-
-  fn perp_line(&self, main_direction: &Direction, sq: Square, piece: Piece) -> Vec<Piece> {
-    let mut result = Vec::new();
-    let (d1,d2) = main_direction.perpendiculars();
-    result.push_all(self.pieces_in_direction(&d1, sq).as_slice());
-    result.push(piece);
-    result.push_all(self.pieces_in_direction(&d2, sq).as_slice());
-    return result;
+    let iter = NonBlankIterator {
+      sq: start,
+      direction: direction.clone(),
+      board: self
+    };
+    return iter.collect();
   }
 
   pub fn put(&mut self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) {
@@ -212,17 +222,16 @@ impl Board {
     if y < self.min_y { self.min_y = y; };
     if y > self.max_y { self.max_y = y; };
   }
-
 }
 
 
-struct BlankSquareIterator<'a> {
+struct NonBlankIterator<'a> {
   sq: Square,
   direction: Direction,
   board: &'a Board
 }
 
-impl<'a> Iterator for BlankSquareIterator<'a> {
+impl<'a> Iterator for NonBlankIterator<'a> {
   type Item = Piece;
 
   fn next(&mut self) -> Option<Piece> {

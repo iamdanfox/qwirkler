@@ -41,11 +41,6 @@ impl LineValidator {
     return Some(lv)
   }
 
-  pub fn valid_line(line: &Vec<Piece>) -> bool {
-    let lv = LineValidator::accept_all(line);
-    return !lv.is_none()
-  }
-
   pub fn accepts(&mut self, new_piece: Piece) -> bool {
     if self.length == 6 {
       return false
