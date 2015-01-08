@@ -12,8 +12,8 @@ mod partial;
 
 fn main() {
 
-  // repeat_silently(100);
-  // return;
+  repeat_silently(100);
+  return;
 
   let mut game_state = GameState::new(2);
   let mut i = 0u;
