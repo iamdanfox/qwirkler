@@ -1,5 +1,5 @@
 use components::{Board, Move};
-use partial::PartialScored;
+use partial::Partial;
 use piece::{Bag, Piece};
 use piece;
 use player::{PlayerState, Score};
@@ -54,7 +54,7 @@ impl GameState {
     //    and everything except the last element in the `pieces` vector (ie, it's None for singletons)
     //  * partial.perp_scores stores the points that would be gained from any perpendicular lines that
     //    this play would form.
-    let mut queue:RingBuf<PartialScored> = RingBuf::new();
+    let mut queue:RingBuf<Partial> = RingBuf::new();
 
     // The PartialStruct data structure allows us to check increasingly long sequences of pieces
     // without repeating any validation or scoring work when testing the long ones.
@@ -63,7 +63,7 @@ impl GameState {
     for &(square, ref direction) in self.board.get_start_squares().iter() {
       // initialize queue with singletons
       for &piece in self.players[self.turn].bag.iter() {
-        queue.push_back(PartialScored::new(piece, square));
+        queue.push_back(Partial::new(piece, square));
       }
       // figure out any possible moves starting at this start square and direction, add to `moves`
       loop {
