@@ -51,7 +51,7 @@ impl GameState {
 
     // Invariants for every partial in the queue:
     //  * every prefix of partial.pieces has already been validated (so we just need to check the last piece)
-    //  * we have already computed the score for (init pieces)
+    //  * we have already computed the score for the n-1 prefix
     //  * partial.last_square is the square that the last piece would fall on
     //  * partial.main_validator is the result of validating everything before the start of the line,
     //    and everything except the last element in the `pieces` vector (ie, it's None for singletons)
