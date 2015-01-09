@@ -32,6 +32,22 @@ impl Board {
       max_y: 0,
     }
   }
+  // TODO: try partitioning perimeter and keeping 12 hashsets instead:
+  // valid start squares for each colour, and valid start squares for each shape.
+
+  // then in the allows method, if we discover a square doesn't allow red pieces in it,
+  // we can remove it from the appropriate hashset and never test it again.
+  // this would also allow a more compact LineValidator (with only 6 slots in already_seen, not 36).
+  // In addition, if we discover a line of 6 pieces, we could ban the end square completely.
+
+  // Might use a new ValidatorResult enum = Success(T) | Failure(AlreadyFull) | Failure(SeenAlready) | Failure(DoesntMatchCommon(Colour))
+      // where DoestMatchCommon could hold either 'Colour' or 'Shape'
+
+  // also, in the `put` method, every time we put down a red line, we could constrain the end square to
+  // only allow red pieces (removing that square from the orange, green, blue, yellow, purple sets).
+  // note - we have to be more careful for perpendiculars, since they might form a line of colour OR shape,
+  // if the two adjacent squares are blank, we can't constrain anything.  Otherwise, we can define a line of
+  // shape or colour!
 
   pub fn get_start_squares(&self) -> Vec<(Square, Direction)> {
     let mut result: Vec<(Square, Direction)> = Vec::new();
@@ -153,7 +169,6 @@ impl Board {
     // compute the new array
     let squares = direction.apply_all(start_sq, pieces.len());
     for (&(x,y),&piece) in squares.iter().zip(pieces.iter()) {
-      self.board[(x+DIM) as uint][(y+DIM) as uint] = piece;
     }
 
     // compute the new perimeter
