@@ -10,14 +10,14 @@ use std::collections::HashSet;
 pub struct Board {
   board: [[Piece; DIM_2]; DIM_2],
   perimeter: HashSet<Square>,
-  min_x: int,
-  max_x: int,
-  min_y: int,
-  max_y: int,
+  min_x: isize,
+  max_x: isize,
+  min_y: isize,
+  max_y: isize,
 }
 
-const DIM:int = 25;
-const DIM_2:uint = (2*DIM) as uint;
+const DIM:isize = 25;
+const DIM_2:usize = (2*DIM) as usize;
 
 impl Board {
   pub fn new() -> Board {
@@ -169,6 +169,7 @@ impl Board {
     // compute the new array
     let squares = direction.apply_all(start_sq, pieces.len());
     for (&(x,y),&piece) in squares.iter().zip(pieces.iter()) {
+      self.board[(x+DIM) as usize][(y+DIM) as usize] = piece;
     }
 
     // compute the new perimeter
@@ -197,7 +198,7 @@ impl Board {
   }
 
   pub fn get(&self, (x,y):Square) -> Piece {
-    return self.board[(x+DIM) as uint][(y+DIM) as uint];
+    return self.board[(x+DIM) as usize][(y+DIM) as usize];
   }
 
   fn stretch_bounding_box(&mut self, (x,y): Square) {

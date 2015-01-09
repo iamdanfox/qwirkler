@@ -5,7 +5,7 @@ pub struct LineValidator {
   seen_already: [bool; 36],
   first_piece: Piece,
   second_piece: Option<Piece>,
-  pub length: uint,
+  pub length: usize,
 }
 
 impl Clone for LineValidator {

@@ -1,6 +1,6 @@
 use std::fmt;
 
-pub type Square = (int,int);
+pub type Square = (isize,isize);
 
 #[derive(Copy,PartialEq,Clone)]
 pub struct Direction {
@@ -48,7 +48,7 @@ impl Direction {
     return (rot90, rot90.opposite());
   }
 
-  pub fn apply_all(&self, sq: Square, len: uint) -> Vec<Square> {
+  pub fn apply_all(&self, sq: Square, len: usize) -> Vec<Square> {
     let mut squares = vec![];
     let mut last = sq;
     for _ in range(0, len) {

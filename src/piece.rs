@@ -34,8 +34,8 @@ impl Piece {
     return self.internal == 0;
   }
 
-  pub fn index(&self) -> uint {
-    return 6*(self.colour() as uint-1) + (self.shape() as uint) - 1
+  pub fn index(&self) -> usize {
+    return 6*(self.colour() as usize-1) + (self.shape() as usize) - 1
   }
 
   pub fn to_string(&self) -> String {

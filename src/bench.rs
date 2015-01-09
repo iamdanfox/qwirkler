@@ -13,6 +13,6 @@ fn entire_game(b: &mut test::Bencher) {
         },
       }
     }
-    println!("{}, total = {}", game_state.players.iter().map(|s| s.score).collect::<Vec<uint>>(), game_state.total_score());
+    println!("{}, total = {}", game_state.players.iter().map(|s| s.score).collect::<Vec<usize>>(), game_state.total_score());
   })
 }

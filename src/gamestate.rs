@@ -11,13 +11,13 @@ pub struct GameState {
   pub board: Board,
   pub players: Vec<PlayerState>,
   bag: Bag,
-  pub turn: uint,
+  pub turn: usize,
 }
 
 
 impl GameState {
 
-  pub fn new(num_players: int) -> GameState {
+  pub fn new(num_players: isize) -> GameState {
     let mut initial_bag = piece::make_bag();
 
     let players = range(0, num_players).map( |_| {
@@ -56,7 +56,7 @@ impl GameState {
     //  * partial.last_square is the square that the last piece would fall on
     //  * partial.main_validator is the result of validating everything before the start of the line,
     //    and everything except the last element in the `pieces` vector (ie, it's None for singletons)
-    //  * partial.perp_scores stores the points that would be gained from any perpendicular lines that
+    //  * partial.perp_scores stores the poisizes that would be gained from any perpendicular lines that
     //    this play would form.
 
     // figure out possible start squares (and directions).

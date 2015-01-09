@@ -1,6 +1,6 @@
 use piece::Bag;
 
-pub type Score = uint;
+pub type Score = usize;
 
 #[derive(Show, Clone)]
 pub struct PlayerState {
