@@ -45,19 +45,18 @@ impl GameState {
     let mut best_score = 0;
     let mut best_move = Move::SwapPieces;
 
-    // We use a RingBuf so that we can remove short ideas from the front
-    // and test them first, adding longer ones to the end. (Vec<...> doesn't allow this)
+    // We use a RingBuf as a queue to test increasingly long sequences of pieces
+    // without repeating any validation or scoring work we did testing the prefixes.
+    let mut queue:RingBuf<Partial> = RingBuf::new();
+
     // Invariants for every partial in the queue:
-    //  * the prefix of partial.pieces has already been validated (so we just need to check the last piece)
+    //  * every prefix of partial.pieces has already been validated (so we just need to check the last piece)
+    //  * we have already computed the score for (init pieces)
     //  * partial.last_square is the square that the last piece would fall on
     //  * partial.main_validator is the result of validating everything before the start of the line,
     //    and everything except the last element in the `pieces` vector (ie, it's None for singletons)
     //  * partial.perp_scores stores the points that would be gained from any perpendicular lines that
     //    this play would form.
-    let mut queue:RingBuf<Partial> = RingBuf::new();
-
-    // The PartialStruct data structure allows us to check increasingly long sequences of pieces
-    // without repeating any validation or scoring work when testing the long ones.
 
     // figure out possible start squares (and directions).
     for &(square, ref direction) in self.board.get_start_squares().iter() {
@@ -70,30 +69,23 @@ impl GameState {
         match queue.pop_front().as_mut() {
           None => break,
           Some(partial) => {
-
-            match self.board.allows(partial) {
-              None => {}
-              Some((mainline_score, perp_score)) => {
-                // put new partials back in
-                'outer: for &next_piece in self.players[self.turn].bag.iter() {
-                  for &already in partial.pieces.iter() {
-                    if next_piece == already {
-                      continue 'outer
-                    }
+            if self.board.allows(partial) {
+              // put new partials back in
+              'outer: for &next_piece in self.players[self.turn].bag.iter() {
+                for &already in partial.pieces.iter() {
+                  if next_piece == already {
+                    continue 'outer
                   }
-                  let mut extended_partial = partial.clone();
-                  extended_partial.pieces.push(next_piece);
-                  extended_partial.mainline_score = mainline_score;
-                  extended_partial.perp_scores += perp_score;
-                  queue.push_back(extended_partial);
                 }
+                let mut extended_partial = partial.clone();
+                extended_partial.pieces.push(next_piece);
+                queue.push_back(extended_partial);
+              }
 
-                // calculate full score and return move
-                let total_score = mainline_score + perp_score + partial.perp_scores;
-                if total_score > best_score {
-                  best_score = total_score;
-                  best_move = partial.save_as_move();
-                }
+              // calculate full score and return move
+              if partial.total_score() > best_score {
+                best_score = partial.total_score();
+                best_move = partial.save_as_move();
               }
             }
           },

@@ -12,7 +12,7 @@ pub struct Partial {
   pub last_square: Square,
   pub mainline_score: Score,
   pub perp_scores: Score,
-  pub main_validator: Option<LineValidator>
+  pub main_validator: Option<LineValidator>,
 }
 
 impl Partial {

@@ -80,9 +80,9 @@ impl Board {
     return self.board[(x+DIM) as uint][(y+DIM) as uint];
   }
 
-  pub fn allows(&self, partial:&mut Partial) -> Option<(Score,Score)> {
+  pub fn allows(&self, partial:&mut Partial) -> bool {
     if !self.get(partial.last_square).is_blank() {
-      return None
+      return false
     }
     let last_piece = partial.pieces[partial.pieces.len()-1];
 
@@ -91,7 +91,7 @@ impl Board {
       None => {
         // we must build the validator (this implies we have a singleton)
         match self.check_first_mainline(partial.start_square, &partial.direction, partial.pieces[0]) {
-          None => return None, // validation failed
+          None => return false, // validation failed
           Some((score,line_validator)) => {
             (score,Some(line_validator)) // this validator gets saved in the partial.
           }
@@ -99,13 +99,13 @@ impl Board {
       },
       Some(lv) => {
         if !lv.accepts(last_piece) {
-          return None
+          return false
         }
         // if the line doesn't end in a blank, we have to continue validating in that direction
         let after_line = partial.direction.apply(partial.last_square);
         if !self.get(after_line).is_blank() {
           if !self.continue_validating(after_line, &partial.direction, lv) {
-            return None
+            return false
           }
         }
         let score = lv.length + if lv.length == 6 { 6 } else { 0 };
@@ -115,15 +115,16 @@ impl Board {
     if !overwrite_validator.is_none() {
       partial.main_validator = overwrite_validator;
     }
+    partial.mainline_score = new_mainline_score;
 
     // since the prefix of this line was already passed validation,
     // we just need to check the last perpendicular.
-    let new_perp_score = match self.check_perpendicular(partial.last_square, &partial.direction, last_piece) {
-      None => return None, // validation failed,
+    partial.perp_scores += match self.check_perpendicular(partial.last_square, &partial.direction, last_piece) {
+      None => return false, // validation failed,
       Some(v) => v
     };
 
-    return Some((new_mainline_score, new_perp_score));
+    return true;
   }
 
   // returns None if it failed validation
