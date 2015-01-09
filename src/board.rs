@@ -91,6 +91,8 @@ impl Board {
       Some(v) => v
     };
 
+    partial.last_square = partial.direction.apply(partial.last_square);
+
     return true;
   }
 

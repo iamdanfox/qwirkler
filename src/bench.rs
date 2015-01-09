@@ -8,8 +8,8 @@ fn entire_game(b: &mut test::Bencher) {
     loop {
       match game_state.generate_best_move() {
         None => break,
-        Some((score, chosen_move)) => {
-          game_state.apply_move(&chosen_move, score);
+        Some(chosen_move) => {
+          game_state.apply_move(&chosen_move);
         },
       }
     }
