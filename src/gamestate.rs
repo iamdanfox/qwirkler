@@ -42,7 +42,7 @@ impl GameState {
   }
 
   // TODO re-use code between generate_best_move and generate_moves
-  pub fn generate_best_move(&self) -> Option<(Score,Move)> {
+  pub fn generate_best_move(&self) -> Option<Move> {
     let mut best_score = 0;
     let mut best_move = Move::SwapPieces;
 
@@ -96,13 +96,13 @@ impl GameState {
     if self.bag.len() == 0 && best_score == 0 {
       return None
     } else {
-      return Some((best_score,best_move))
+      return Some(best_move)
     }
   }
 
-  pub fn apply_move(&mut self, chosen_move: &Move, score: Score)  {
+  pub fn apply_move(&mut self, chosen_move: &Move)  {
     match chosen_move {
-      &Move::PlacePieces(sq, ref dir, ref pieces_to_place) => {
+      &Move::PlacePieces(sq, ref dir, ref pieces_to_place, score) => {
         self.board.put(sq, dir, pieces_to_place);
 
         let mut depleted_player_bag:Vec<Piece> = Vec::new();

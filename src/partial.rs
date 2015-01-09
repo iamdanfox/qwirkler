@@ -33,6 +33,6 @@ impl Partial {
   }
 
   pub fn save_as_move(&self) -> Move {
-    return Move::PlacePieces(self.start_square, self.direction, self.pieces.clone());
+    return Move::PlacePieces(self.start_square, self.direction, self.pieces.clone(), self.total_score());
   }
 }
