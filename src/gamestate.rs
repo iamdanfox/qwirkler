@@ -1,4 +1,5 @@
-use components::{Board, Move};
+use board::Board;
+use mv::Move;
 use partial::Partial;
 use piece::{Bag, Piece};
 use piece;

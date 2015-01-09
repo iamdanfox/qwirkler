@@ -2,7 +2,7 @@ use piece::{Piece};
 use linevalidator::LineValidator;
 use player::Score;
 use direction::{Square, Direction};
-use components::Move;
+use mv::Move;
 
 #[derive(Clone)]
 pub struct Partial {
@@ -19,7 +19,7 @@ impl Partial {
   pub fn new(square:Square, direction: &Direction, piece:Piece) -> Partial {
     return Partial {
       start_square: square,
-      direction: direction.clone(),
+      direction: *direction,
       pieces: vec![piece],
       mainline_score: 0,
       perp_scores: 0,
@@ -33,6 +33,6 @@ impl Partial {
   }
 
   pub fn save_as_move(&self) -> Move {
-    return Move::PlacePieces(self.start_square, self.direction.clone(), self.pieces.clone());
+    return Move::PlacePieces(self.start_square, self.direction, self.pieces.clone());
   }
 }

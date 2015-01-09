@@ -7,12 +7,6 @@ use partial::Partial;
 use std::collections::HashSet;
 
 
-#[derive(Show)]
-pub enum Move {
-  SwapPieces,
-  PlacePieces(Square, Direction, Vec<Piece>)
-}
-
 pub struct Board {
   board: [[Piece; DIM_2]; DIM_2],
   perimeter: HashSet<Square>,
@@ -24,26 +18,6 @@ pub struct Board {
 
 const DIM:int = 25;
 const DIM_2:uint = (2*DIM) as uint;
-
-impl fmt::Show for Board {
-  fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-    let mut output = string::String::new();
-
-    for y in range(self.min_y - 1, self.max_y + 2) {
-      for x in range(self.min_x - 1, self.max_x + 2) {
-        let piece = self.get((x,y));
-        if !piece.is_blank() {
-          output.push_str(piece.to_string().as_slice());
-        } else {
-          output.push_str("..");
-        }
-        output.push_str(" ");
-      }
-      output.push_str("\n");
-    }
-    output.fmt(formatter)
-  }
-}
 
 impl Board {
   pub fn new() -> Board {
@@ -62,10 +36,10 @@ impl Board {
   pub fn get_start_squares(&self) -> Vec<(Square, Direction)> {
     let mut result: Vec<(Square, Direction)> = Vec::new();
 
-    for direction in Direction::all().iter() {
+    for &direction in Direction::all().iter() {
       for &sq in self.perimeter.iter() {
         if self.get(direction.apply(sq)).is_blank() {
-          result.push((sq,direction.clone()));
+          result.push((sq,direction));
         }
       }
     }
@@ -76,10 +50,6 @@ impl Board {
     }
   }
 
-  pub fn get(&self, (x,y):Square) -> Piece {
-    return self.board[(x+DIM) as uint][(y+DIM) as uint];
-  }
-
   pub fn allows(&self, partial:&mut Partial) -> bool {
     if !self.get(partial.last_square).is_blank() {
       return false
@@ -88,17 +58,14 @@ impl Board {
 
     // if the partial already has a line validator, we can just extend it.  Otherwise, we must build the first one.
     let (new_mainline_score, overwrite_validator):(Score, Option<LineValidator>) = match partial.main_validator.as_mut() {
-      None => {
+      None =>
         // we must build the validator (this implies we have a singleton)
         match self.check_first_mainline(partial.start_square, &partial.direction, partial.pieces[0]) {
           None => return false, // validation failed
-          Some((score,line_validator)) => {
-            (score,Some(line_validator)) // this validator gets saved in the partial.
-          }
-        }
-      },
+          Some((score,line_validator)) => (score,Some(line_validator)) // this validator gets saved in the partial.
+        },
       Some(lv) => {
-        if !lv.accepts(last_piece) {
+        if !lv.add_piece(last_piece) {
           return false
         }
         // if the line doesn't end in a blank, we have to continue validating in that direction
@@ -112,10 +79,10 @@ impl Board {
         (score, None) // no need to overwrite the validator.
       }
     };
+    partial.mainline_score = new_mainline_score;
     if !overwrite_validator.is_none() {
       partial.main_validator = overwrite_validator;
     }
-    partial.mainline_score = new_mainline_score;
 
     // since the prefix of this line was already passed validation,
     // we just need to check the last perpendicular.
@@ -131,8 +98,8 @@ impl Board {
   fn check_first_mainline(&self, square:Square, direction:&Direction, first_piece:Piece) -> Option<(Score, LineValidator)> {
     let mut first_lv = LineValidator::new(first_piece);
     let mut count = 1;
-    for p in self.non_blank_iter(square, (*direction).clone()).chain(self.non_blank_iter(square, direction.opposite())) {
-      if !first_lv.accepts(p) {
+    for p in self.non_blank_iter(square, *direction).chain(self.non_blank_iter(square, direction.opposite())) {
+      if !first_lv.add_piece(p) {
         return None
       }
       count += 1;
@@ -145,7 +112,7 @@ impl Board {
     let mut curr_square = after_line;
     let mut curr_piece = self.get(curr_square);
     while !curr_piece.is_blank() {
-      if !lv.accepts(curr_piece) {
+      if !lv.add_piece(curr_piece) {
         return false
       } else {
         curr_square = direction.apply(curr_square);
@@ -161,7 +128,7 @@ impl Board {
     let mut perp_lv = LineValidator::new(piece);
     let (d1,d2) = direction.perpendiculars();
     for p in self.non_blank_iter(square, d1).chain(self.non_blank_iter(square, d2)) {
-      if !perp_lv.accepts(p) {
+      if !perp_lv.add_piece(p) {
         return None
       }
       perp_size += 1;
@@ -214,6 +181,10 @@ impl Board {
     self.stretch_bounding_box(squares[pieces.len()-1]);
   }
 
+  pub fn get(&self, (x,y):Square) -> Piece {
+    return self.board[(x+DIM) as uint][(y+DIM) as uint];
+  }
+
   fn stretch_bounding_box(&mut self, (x,y): Square) {
     if x < self.min_x { self.min_x = x; };
     if x > self.max_x { self.max_x = x; };
@@ -222,7 +193,29 @@ impl Board {
   }
 }
 
+impl fmt::Show for Board {
+  fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    let mut output = string::String::new();
 
+    for y in range(self.min_y - 1, self.max_y + 2) {
+      for x in range(self.min_x - 1, self.max_x + 2) {
+        let piece = self.get((x,y));
+        if !piece.is_blank() {
+          output.push_str(piece.to_string().as_slice());
+        } else {
+          output.push_str("..");
+        }
+        output.push_str(" ");
+      }
+      output.push_str("\n");
+    }
+    output.fmt(formatter)
+  }
+}
+
+
+// this allows us to lazily lookup pieces from the board (validating them as we go)
+// this doubled the overall speed!
 struct NonBlankIterator<'a> {
   sq: Square,
   direction: Direction,

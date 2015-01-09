@@ -1,16 +1,14 @@
 use gamestate::GameState;
-// use components::Move;
-// use player::Score;
 
 mod piece;
-mod components;
+mod board;
 mod gamestate;
 mod direction;
 mod player;
 mod partial;
 mod bench;
 mod linevalidator;
-
+mod mv;
 
 fn main() {
   let mut game_state = GameState::new(2);

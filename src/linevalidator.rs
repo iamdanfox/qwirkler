@@ -31,7 +31,7 @@ impl LineValidator {
     }
   }
 
-  pub fn accepts(&mut self, new_piece: Piece) -> bool {
+  pub fn add_piece(&mut self, new_piece: Piece) -> bool {
     if self.length == 6 {
       return false
     } else {
