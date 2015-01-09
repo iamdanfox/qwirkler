@@ -46,9 +46,7 @@ impl LineValidator {
             self.second_piece = Some(new_piece);
           },
           Some(p2) => {
-            let same_colour = self.first_piece.colour() == new_piece.colour() && p2.colour() == new_piece.colour();
-            let same_shape =  self.first_piece.shape() == new_piece.shape() && p2.shape() == new_piece.shape();
-            if !same_colour && !same_shape {
+            if !self.first_piece.compatible3(p2, new_piece) {
               return false
             }
           }

@@ -35,4 +35,11 @@ impl Partial {
   pub fn save_as_move(&self) -> Move {
     return Move::PlacePieces(self.start_square, self.direction, self.pieces.clone(), self.total_score());
   }
+
+  pub fn extend(&self, next_piece:Piece) -> Partial {
+    let mut extended_partial = self.clone();
+    extended_partial.pieces.push(next_piece);
+    extended_partial.last_square = self.direction.apply(self.last_square);
+    return extended_partial;
+  }
 }

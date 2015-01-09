@@ -4,7 +4,7 @@ use std::fmt;
 pub type Bag = Vec<Piece>;
 
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub struct Piece {
   internal: u8,
 }
@@ -53,18 +53,24 @@ impl Piece {
       }
     }
   }
+
+  pub fn compatible3(&self, piece2: Piece, piece3: Piece) -> bool {
+    if self.colour() == piece2.colour() && self.colour() == piece3.colour() {
+      return true
+    } else {
+      if self.shape() == piece2.shape() && self.shape() == piece3.shape() {
+        return true
+      } else {
+        return false
+      }
+    }
+  }
 }
 
 
 impl fmt::Show for Piece {
   fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
     self.to_string().fmt(formatter)
-  }
-}
-
-impl PartialEq for Piece {
-  fn eq(&self, other: &Piece) -> bool {
-    return self.internal == other.internal
   }
 }
 

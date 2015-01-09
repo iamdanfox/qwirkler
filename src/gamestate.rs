@@ -78,9 +78,7 @@ impl GameState {
                     continue 'outer
                   }
                 }
-                let mut extended_partial = partial.clone();
-                extended_partial.pieces.push(next_piece);
-                queue.push_back(extended_partial);
+                queue.push_back(partial.extend(next_piece));
               }
 
               // calculate full score and return move
