@@ -1,6 +1,6 @@
 extern crate core;
 
-use piece::{Piece};
+use piece::{Piece, Bag};
 use linevalidator::LineValidator;
 use direction::{Square, Direction};
 use std::{fmt, string};
@@ -32,22 +32,6 @@ impl Board {
       max_y: 0,
     }
   }
-  // TODO: try partitioning perimeter and keeping 12 hashsets instead:
-  // valid start squares for each colour, and valid start squares for each shape.
-
-  // then in the allows method, if we discover a square doesn't allow red pieces in it,
-  // we can remove it from the appropriate hashset and never test it again.
-  // this would also allow a more compact LineValidator (with only 6 slots in already_seen, not 36).
-  // In addition, if we discover a line of 6 pieces, we could ban the end square completely.
-
-  // Might use a new ValidatorResult enum = Success(T) | Failure(AlreadyFull) | Failure(SeenAlready) | Failure(DoesntMatchCommon(Colour))
-      // where DoestMatchCommon could hold either 'Colour' or 'Shape'
-
-  // also, in the `put` method, every time we put down a red line, we could constrain the end square to
-  // only allow red pieces (removing that square from the orange, green, blue, yellow, purple sets).
-  // note - we have to be more careful for perpendiculars, since they might form a line of colour OR shape,
-  // if the two adjacent squares are blank, we can't constrain anything.  Otherwise, we can define a line of
-  // shape or colour!
 
   pub fn get_start_squares(&self) -> Vec<(Square, Direction)> {
     let mut result: Vec<(Square, Direction)> = Vec::new();
@@ -66,32 +50,42 @@ impl Board {
     }
   }
 
-  pub fn allows(&self, partial:&mut Partial) -> bool {
+  pub fn allows(&self, partial:&mut Partial, playerbag: &Bag) -> Option<Vec<Piece>> {
     if !self.get(partial.last_square).is_none() {
-      return false
+      return None
     }
     let last_piece = partial.pieces[partial.pieces.len()-1];
 
+    let mut extendables:Vec<Piece> = Vec::new();
     // if the partial already has a line validator, we can just extend it.  Otherwise, we must build the first one.
     let (new_mainline_score, overwrite_validator):(Score, Option<LineValidator>) = match partial.main_validator.as_mut() {
       None =>
         // we must build the validator (this implies we have a singleton)
         match self.check_first_mainline(partial.start_square, &partial.direction, partial.pieces[0]) {
-          None => return false, // validation failed
-          Some((score,line_validator)) => (score,Some(line_validator)) // this validator gets saved in the partial.
+          None => return None, // validation failed
+          Some((score,line_validator)) => {
+            for &p in playerbag.iter().filter(|&&p| line_validator.can_add(p)) {
+              extendables.push(p);
+            }
+            (score,Some(line_validator)) // this validator gets saved in the partial.
+          }
         },
       Some(lv) => {
         if !lv.add_piece(last_piece) {
-          return false
+          return None
         }
         // if the line doesn't end in a blank, we have to continue validating in that direction
         let after_line = partial.direction.apply(partial.last_square);
         if !self.get(after_line).is_none() {
           if !self.continue_validating(after_line, &partial.direction, lv) {
-            return false
+            return None
           }
         }
         let score = lv.length + if lv.length == 6 { 6 } else { 0 };
+
+        for &p in playerbag.iter().filter(|&&p| lv.can_add(p)) {
+          extendables.push(p);
+        }
         (score, None) // no need to overwrite the validator.
       }
     };
@@ -103,11 +97,11 @@ impl Board {
     // since the prefix of this line was already passed validation,
     // we just need to check the last perpendicular.
     partial.perp_scores += match self.check_perpendicular(partial.last_square, &partial.direction, last_piece) {
-      None => return false, // validation failed,
+      None => return None, // validation failed,
       Some(v) => v
     };
 
-    return true;
+    return Some(extendables);
   }
 
   // returns None if it failed validation
@@ -183,7 +177,9 @@ impl Board {
     }
 
     let mut candidates = Vec::new();
-    candidates.push(direction.apply(squares[pieces.len()-1]));
+    if pieces.len() < 6 {
+      candidates.push(direction.apply(squares[pieces.len()-1]));
+    }
     candidates.push(direction.opposite().apply(start_sq));
     let (d1,d2) = direction.perpendiculars();
     for &sq in squares.iter() {

@@ -70,24 +70,22 @@ impl GameState {
         match queue.pop_front().as_mut() {
           None => break,
           Some(partial) => {
-            if self.board.allows(partial) {
-              // put new partials back in
-              'outer: for &next_piece in self.players[self.turn].bag.iter() {
-                for &already in partial.pieces.iter() {
-                  if next_piece == already {
-                    continue 'outer
-                  }
+            match self.board.allows(partial, &self.players[self.turn].bag) {
+              None => {},
+              Some(ps) => {
+                // put new partials back in
+                for &p in ps.iter() {
+                  queue.push_back(partial.extend(p));
                 }
-                queue.push_back(partial.extend(next_piece));
-              }
 
-              // calculate full score and return move
-              if partial.total_score() > best_score {
-                best_score = partial.total_score();
-                best_move = partial.save_as_move();
+                // calculate full score and return move
+                if partial.total_score() > best_score {
+                  best_score = partial.total_score();
+                  best_move = partial.save_as_move();
+                }
               }
             }
-          },
+          }
         }
       }
     }

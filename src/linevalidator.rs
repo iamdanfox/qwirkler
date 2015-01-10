@@ -1,4 +1,4 @@
-use piece::{Piece};
+use piece::{Piece, Colour, Shape};
 
 
 pub struct LineValidator {
@@ -26,6 +26,28 @@ impl LineValidator {
       first_piece: first_piece,
       is_line_of_colour: None,
       length: 1,
+    }
+  }
+
+  pub fn can_add(&self, new_piece: Piece) -> bool {
+    if self.length == 6 || new_piece == self.first_piece {
+      return false
+    }
+
+    match self.is_line_of_colour {
+      None => return self.first_piece.compatible_with(new_piece),
+      Some(loc) => {
+        if loc {
+          if self.first_piece.colour != new_piece.colour || self.seen_already[new_piece.shape.index()] {
+            return false
+          }
+        } else {
+          if self.first_piece.shape != new_piece.shape || self.seen_already[new_piece.colour.index()] {
+            return false
+          }
+        }
+        return true
+      }
     }
   }
 

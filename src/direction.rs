@@ -2,7 +2,7 @@ use std::fmt;
 
 pub type Square = (isize,isize);
 
-#[derive(Copy,PartialEq,Clone)]
+#[derive(Copy,PartialEq,Clone,Eq)]
 pub enum Direction {
   U,D,L,R
 }
