@@ -5,24 +5,24 @@ use direction::{Square, Direction};
 use mv::Move;
 
 pub struct Partial {
-  pub start_square: Square,
-  pub direction: Direction,
-  pub pieces: Vec<Piece>,
-  pub last_square: Square,
+  pub start_square:   Square,
+  pub direction:      Direction,
+  pub pieces:         Vec<Piece>,
+  pub last_square:    Square,
   pub mainline_score: Score,
-  pub perp_scores: Score,
+  pub perp_scores:    Score,
   pub main_validator: Option<LineValidator>,
 }
 
 impl Partial {
   pub fn new(square:Square, direction: &Direction, piece:Piece) -> Partial {
     return Partial {
-      start_square: square,
-      direction: *direction,
-      pieces: vec![piece],
+      start_square:   square,
+      direction:      *direction,
+      pieces:         vec![piece],
       mainline_score: 0,
-      perp_scores: 0,
-      last_square: square,
+      perp_scores:    0,
+      last_square:    square,
       main_validator: None,
     };
   }
@@ -45,12 +45,12 @@ impl Partial {
             let mut new_pieces = self.pieces.clone();
             new_pieces.push(next_piece);
             Some(Partial {
-              start_square: self.start_square,
-              direction: self.direction,
-              pieces: new_pieces,
+              start_square:   self.start_square,
+              direction:      self.direction,
+              pieces:         new_pieces,
               mainline_score: self.mainline_score,
-              perp_scores: self.perp_scores,
-              last_square: self.direction.apply(self.last_square),
+              perp_scores:    self.perp_scores,
+              last_square:    self.direction.apply(self.last_square),
               main_validator: Some(lv2),
             })
           }

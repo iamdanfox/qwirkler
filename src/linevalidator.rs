@@ -1,34 +1,24 @@
 use piece::{Piece, Colour, Shape};
 
-
+#[derive(Copy)]
 pub struct LineValidator {
-  seen_already: [bool; 6],
-  first_piece: Piece,
+  seen_already:      [bool; 6],
+  first_piece:       Piece,
   is_line_of_colour: Option<bool>,
-  pub length: usize,
-}
-
-impl Clone for LineValidator {
-  fn clone(&self) -> LineValidator {
-    return LineValidator {
-      seen_already: self.seen_already,
-      first_piece: self.first_piece,
-      is_line_of_colour: self.is_line_of_colour,
-      length: self.length,
-    }
-  }
+  pub length:        usize,
 }
 
 impl LineValidator {
   pub fn new(first_piece: Piece) -> LineValidator {
     return LineValidator {
-      seen_already: [false; 6],
-      first_piece: first_piece,
+      seen_already:      [false; 6],
+      first_piece:       first_piece,
       is_line_of_colour: None,
-      length: 1,
+      length:            1,
     }
   }
 
+  /// Clones and extends this validator if the new_piece is compatible, returns None otherwise
   pub fn clone_extend(&self, new_piece: Piece) -> Option<LineValidator> {
     if self.length == 6 || new_piece == self.first_piece {
       return None
@@ -37,14 +27,14 @@ impl LineValidator {
     match self.is_line_of_colour {
       None => {
         if self.first_piece.colour == new_piece.colour{
-          let mut lv2 = self.clone();
+          let mut lv2 = *self;
           lv2.is_line_of_colour = Some(true);
           lv2.seen_already[self.first_piece.shape.index()] = true;
           lv2.seen_already[new_piece.shape.index()] = true;
           lv2.length += 1;
           return Some(lv2)
         } else if self.first_piece.shape == new_piece.shape {
-          let mut lv2 = self.clone();
+          let mut lv2 = *self;
           lv2.is_line_of_colour = Some(false);
           lv2.seen_already[self.first_piece.colour.index()] = true;
           lv2.seen_already[new_piece.colour.index()] = true;
@@ -59,7 +49,7 @@ impl LineValidator {
           if self.first_piece.colour != new_piece.colour || self.seen_already[new_piece.shape.index()] {
             return None
           }
-          let mut lv2 = self.clone();
+          let mut lv2 = *self;
           lv2.seen_already[new_piece.shape.index()] = true;
           lv2.length += 1;
           return Some(lv2)
@@ -67,7 +57,7 @@ impl LineValidator {
           if self.first_piece.shape != new_piece.shape || self.seen_already[new_piece.colour.index()] {
             return None
           }
-          let mut lv2 = self.clone();
+          let mut lv2 = *self;
           lv2.seen_already[new_piece.colour.index()] = true;
           lv2.length += 1;
           return Some(lv2)
@@ -126,6 +116,19 @@ impl LineValidator {
         }
         self.length = self.length + 1;
         return true
+      }
+    }
+  }
+
+  pub fn extend_from_iter<'a, T: Iterator<Item=Piece>>(&mut self, iter: &mut T) -> bool{
+    loop {
+      match iter.next() {
+        None => return true,
+        Some(p) =>  {
+          if !self.add_piece(p) {
+            return false
+          }
+        }
       }
     }
   }

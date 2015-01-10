@@ -9,12 +9,12 @@ use partial::Partial;
 use std::collections::HashSet;
 
 pub struct Board {
-  board: [[Option<Piece>; DIM_2]; DIM_2],
+  board:     [[Option<Piece>; DIM_2]; DIM_2],
   perimeter: HashSet<Square>,
-  min_x: isize,
-  max_x: isize,
-  min_y: isize,
-  max_y: isize,
+  min_x:     isize,
+  max_x:     isize,
+  min_y:     isize,
+  max_y:     isize,
 }
 
 const DIM:isize = 25;
@@ -55,20 +55,17 @@ impl Board {
 
     // since the prefix of this line was already passed validation,
     // we just need to check the last perpendicular.
-    let mut new_perp_score = 0;
     let last_piece = partial.pieces[partial.pieces.len()-1];
-    match self.check_perpendicular(partial.last_square, &partial.direction, last_piece) {
+    let new_perp_score = match self.check_perpendicular(partial.last_square, &partial.direction, last_piece) {
       None => return false,
-      Some(v) => new_perp_score = v
+      Some(v) => v
     };
 
     // if we have no line validator, we must construct one and save it
     if partial.main_validator.is_none() {
       let mut first_lv = LineValidator::new(partial.pieces[0]);
-      for p in self.non_blank_iter(partial.start_square, partial.direction.opposite()) {
-        if !first_lv.add_piece(p) {
-          return false
-        }
+      if !first_lv.extend_from_iter(&mut self.non_blank_iter(partial.start_square, partial.direction.opposite())) {
+        return false
       }
       partial.main_validator = Some(first_lv)
     }
@@ -76,10 +73,8 @@ impl Board {
     if let Some(ref mut lv) = partial.main_validator.as_mut() {
       if !self.get(partial.direction.apply(partial.last_square)).is_none() {
         // the line doesn't end in a blank, we have to continue validating in that direction
-        for p in self.non_blank_iter(partial.last_square, partial.direction) {
-          if !lv.add_piece(p) {
-            return false
-          }
+        if !lv.extend_from_iter(&mut self.non_blank_iter(partial.last_square, partial.direction)) {
+          return false
         }
         lv.seal() // this also implies that this partial can't be extended
       }
@@ -92,18 +87,13 @@ impl Board {
 
   // returns the score won from a perpendicular line or return None if it's invalid.
   fn check_perpendicular(&self, square:Square, direction:&Direction, piece:Piece) -> Option<Score> {
-    let mut perp_size = 1;
     let mut perp_lv = LineValidator::new(piece);
     let (d1,d2) = direction.perpendiculars();
-    for p in self.non_blank_iter(square, d1).chain(self.non_blank_iter(square, d2)) {
-      if !perp_lv.add_piece(p) {
-        return None
-      }
-      perp_size += 1;
+    if !perp_lv.extend_from_iter(&mut self.non_blank_iter(square, d1).chain(self.non_blank_iter(square, d2))) {
+      return None
     }
-
-    if perp_size > 1 {
-      return Some(perp_size + if perp_size == 6 { 6 } else { 0 });
+    if perp_lv.length > 1 {
+      return Some(perp_lv.length + if perp_lv.length == 6 { 6 } else { 0 });
     } else {
       return Some(0) // ensures we don't double count each piece!
     }
@@ -111,9 +101,9 @@ impl Board {
 
   fn non_blank_iter(&self, start: Square, direction: Direction) -> NonBlankIterator {
     return NonBlankIterator {
-      sq: start,
+      sq:        start,
       direction: direction,
-      board: self
+      board:     self,
     }
   }
 
@@ -184,10 +174,10 @@ impl core::fmt::String for Board {
 
 // this allows us to lazily lookup pieces from the board (validating them as we go)
 // this doubled the overall speed!
-struct NonBlankIterator<'a> {
-  sq: Square,
+pub struct NonBlankIterator<'a> {
+  sq:        Square,
   direction: Direction,
-  board: &'a Board
+  board:     &'a Board
 }
 
 impl<'a> Iterator for NonBlankIterator<'a> {

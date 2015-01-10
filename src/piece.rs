@@ -1,5 +1,5 @@
 use std::rand::{thread_rng, Rng};
-use std::fmt;
+
 
 pub type Bag = Vec<Piece>;
 
@@ -53,47 +53,11 @@ impl Piece {
     }
   }
 
-  pub fn colour(&self) -> Colour {
-    return self.colour;
-  }
-
-  pub fn shape(&self) -> Shape {
-    return self.shape;
-  }
-
-  pub fn index(&self) -> usize {
-    return 6*self.colour.index() + self.shape.index();
-  }
-
   pub fn to_string(&self) -> String {
     let mut s = String::new();
     s.push_str((1+self.colour.index()).to_string().as_slice());
     s.push_str((1+self.shape.index()).to_string().as_slice());
     return s;
-  }
-
-  pub fn compatible_with(&self, piece2: Piece) -> bool {
-    if self.colour() == piece2.colour() {
-      return true
-    } else {
-      if self.shape() == piece2.shape() {
-        return true
-      } else {
-        return false
-      }
-    }
-  }
-
-  pub fn compatible3(&self, piece2: Piece, piece3: Piece) -> bool {
-    if self.colour() == piece2.colour() && self.colour() == piece3.colour() {
-      return true
-    } else {
-      if self.shape() == piece2.shape() && self.shape() == piece3.shape() {
-        return true
-      } else {
-        return false
-      }
-    }
   }
 }
 
@@ -116,9 +80,7 @@ pub fn resupply_player_mutate(player_bag: &mut Bag, main_bag: &mut Bag) {
     let slice = main_bag.as_mut_slice();
     rng.shuffle(slice);
   }
-
   let num_to_take = 6 - player_bag.len();
-
   for _ in (0..num_to_take) {
     main_bag.pop().map(|piece| player_bag.push(piece));
   }
