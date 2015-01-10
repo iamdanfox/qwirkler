@@ -1,10 +1,10 @@
-use piece::{Piece, Colour, Shape};
+use piece::{Piece};
 
 
 pub struct LineValidator {
-  seen_already: [bool; 36],
+  seen_already: [bool; 6],
   first_piece: Piece,
-  second_piece: Option<Piece>,
+  is_line_of_colour: Option<bool>,
   pub length: usize,
 }
 
@@ -13,7 +13,7 @@ impl Clone for LineValidator {
     return LineValidator {
       seen_already: self.seen_already,
       first_piece: self.first_piece,
-      second_piece: self.second_piece,
+      is_line_of_colour: self.is_line_of_colour,
       length: self.length,
     }
   }
@@ -21,38 +21,50 @@ impl Clone for LineValidator {
 
 impl LineValidator {
   pub fn new(first_piece: Piece) -> LineValidator {
-    let mut seen_already = [false; 36];
-    seen_already[first_piece.index()] = true;
     return LineValidator {
-      seen_already: seen_already,
+      seen_already: [false; 6],
       first_piece: first_piece,
-      second_piece: None,
+      is_line_of_colour: None,
       length: 1,
     }
   }
 
   pub fn add_piece(&mut self, new_piece: Piece) -> bool {
-    if self.length == 6 {
+    if self.length == 6 || new_piece == self.first_piece {
       return false
-    } else {
-      if self.seen_already[new_piece.index()] {
-        return false
-      } else {
-        match self.second_piece {
-          None => {
-            if !self.first_piece.compatible_with(new_piece) {
-              return false
-            }
-            self.second_piece = Some(new_piece);
-          },
-          Some(p2) => {
-            if !self.first_piece.compatible3(p2, new_piece) {
-              return false
-            }
+    }
+
+    match self.is_line_of_colour {
+      None => {
+        if self.first_piece.colour == new_piece.colour {
+          self.is_line_of_colour = Some(true);
+          self.seen_already[self.first_piece.shape.index()] = true;
+          self.seen_already[new_piece.shape.index()] = true;
+          self.length = self.length + 1;
+          return true
+        } else if self.first_piece.shape == new_piece.shape {
+          self.is_line_of_colour = Some(false);
+          self.seen_already[self.first_piece.colour.index()] = true;
+          self.seen_already[new_piece.colour.index()] = true;
+          self.length = self.length + 1;
+          return true
+        } else {
+          return false
+        }
+      },
+      Some(loc) => {
+        if loc {
+          if self.first_piece.colour != new_piece.colour || self.seen_already[new_piece.shape.index()] {
+            return false
           }
-        };
+          self.seen_already[new_piece.shape.index()] = true;
+        } else {
+          if self.first_piece.shape != new_piece.shape || self.seen_already[new_piece.colour.index()] {
+            return false
+          }
+          self.seen_already[new_piece.colour.index()] = true;
+        }
         self.length = self.length + 1;
-        self.seen_already[new_piece.index()] = true;
         return true
       }
     }
@@ -110,57 +122,3 @@ fn test_change_common_feature() {
   lv.add_piece(p2);
   assert!(lv.add_piece(p3));
 }
-
-// impl LineValidator {
-//   pub fn new(first_piece: Piece) -> LineValidator {
-//     return LineValidator {
-//       seen_already: [false; 6],
-//       first_piece: first_piece,
-//       is_line_of_colour: None,
-//       length: 1,
-//     }
-//   }
-
-//   pub fn add_piece(&mut self, new_piece: Piece) -> bool {
-//     if self.length == 6 || new_piece == self.first_piece {
-//       return false
-//     }
-
-//     match self.is_line_of_colour {
-//       None => {
-//         if self.first_piece.colour() == new_piece.colour() {
-//           self.is_line_of_colour = Some(true);
-//           self.seen_already[self.first_piece.colour.index()] = true;
-//           self.seen_already[new_piece.colour.index()] = true;
-//           self.length = self.length + 1;
-//           return true
-//         } else if self.first_piece.shape() == new_piece.shape() {
-//           self.is_line_of_colour = Some(false);
-//           self.seen_already[self.first_piece.shape.index()] = true;
-//           self.seen_already[new_piece.shape.index()] = true;
-//           self.length = self.length + 1;
-//           return true
-//         } else {
-//           return false
-//         }
-//       },
-//       Some(loc) => {
-//         if loc {
-//           if self.first_piece.colour() != new_piece.colour() || self.seen_already[new_piece.colour.index()] {
-//             return false
-//           }
-//           self.seen_already[new_piece.colour.index()] = true;
-//           self.length = self.length + 1;
-//           return true
-//         } else {
-//           if self.first_piece.shape() != new_piece.shape() || self.seen_already[new_piece.shape.index()]{
-//             return false
-//           }
-//           self.seen_already[new_piece.shape.index()] = true;
-//           self.length = self.length + 1;
-//           return true
-//         }
-//       }
-//     }
-//   }
-// }
