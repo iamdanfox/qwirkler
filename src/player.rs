@@ -9,7 +9,7 @@ pub struct PlayerState {
 }
 
 impl PlayerState {
-  pub fn new(bag: Bag) -> PlayerState {
-    PlayerState { bag: bag, score: 0 }
+  pub fn new() -> PlayerState {
+    PlayerState { bag: vec![], score: 0 }
   }
 }

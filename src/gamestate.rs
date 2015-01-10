@@ -5,7 +5,7 @@ use piece::{Bag, Piece};
 use piece;
 use player::{PlayerState, Score};
 use std::collections::RingBuf;
-
+use std::mem;
 
 pub struct GameState {
   pub board: Board,
@@ -21,8 +21,9 @@ impl GameState {
     let mut initial_bag = piece::make_bag();
 
     let players = (0..num_players).map( |_| {
-      let player_bag = piece::resupply_player_mutate(vec![], &mut initial_bag);
-      PlayerState::new(player_bag)
+      let mut ps = PlayerState::new();
+      piece::resupply_player_mutate(&mut ps.bag, &mut initial_bag);
+      ps
     }).collect();
 
     GameState {
@@ -110,20 +111,17 @@ impl GameState {
           }
           depleted_player_bag.push(*existing_piece);
         }
+        self.players[self.turn].bag = depleted_player_bag;
+        piece::resupply_player_mutate(&mut self.players[self.turn].bag, &mut self.bag);
 
-        self.players[self.turn] = PlayerState {
-          score: self.players[self.turn].score + score,
-          bag: piece::resupply_player_mutate(depleted_player_bag, &mut self.bag),
-        };
+        self.players[self.turn].score += score;
       },
       &Move::SwapPieces => {
+        let oldbag = mem::replace(&mut self.players[self.turn].bag, vec![]);
         // return pieces to bag
-        self.bag.push_all(self.players[self.turn].bag.as_slice());
+        self.bag.push_all(oldbag.as_slice());
         // do shuffle and re-draw 6 (if possible)
-        self.players[self.turn] = PlayerState {
-          score: self.players[self.turn].score,
-          bag: piece::resupply_player_mutate(vec![], &mut self.bag),
-        };
+        piece::resupply_player_mutate(&mut self.players[self.turn].bag, &mut self.bag);
       },
     }
     self.turn = (self.turn + 1) % self.players.len();

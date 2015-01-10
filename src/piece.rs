@@ -110,7 +110,7 @@ pub fn make_bag() -> Bag {
   return res;
 }
 
-pub fn resupply_player_mutate(player_bag: Bag, main_bag: &mut Bag) -> Bag {
+pub fn resupply_player_mutate(player_bag: &mut Bag, main_bag: &mut Bag) {
   {
     let mut rng = thread_rng();
     let slice = main_bag.as_mut_slice();
@@ -118,11 +118,8 @@ pub fn resupply_player_mutate(player_bag: Bag, main_bag: &mut Bag) -> Bag {
   }
 
   let num_to_take = 6 - player_bag.len();
-  let mut player_bag2 = player_bag;
 
   for _ in (0..num_to_take) {
-    main_bag.pop().map(|piece| player_bag2.push(piece));
+    main_bag.pop().map(|piece| player_bag.push(piece));
   }
-
-  return player_bag2
 }
