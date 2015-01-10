@@ -60,7 +60,7 @@ impl Board {
     let mut new_perp_score = 0;
     match self.check_perpendicular(partial.last_square, &partial.direction, last_piece) {
       None => {
-        println!("perp");
+        // println!("perp");
         return false // validation failed,
       },
       Some(v) => new_perp_score = v
@@ -73,7 +73,7 @@ impl Board {
         // we must build the validator (this implies we have a singleton)
         match self.check_first_mainline(partial.start_square, &partial.direction, partial.pieces[0]) {
           None => {
-            println!("b");
+            // println!("b");
             return false // validation failed
           },
           Some((score,line_validator)) => {
@@ -85,7 +85,7 @@ impl Board {
         let after_line = partial.direction.apply(partial.last_square);
         if !self.get(after_line).is_none() {
           if !self.continue_validating(after_line, &partial.direction, lv) {
-            println!("x");
+            // println!("x");
             return false
           }
         }

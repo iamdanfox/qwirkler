@@ -36,10 +36,27 @@ impl Partial {
     return Move::PlacePieces(self.start_square, self.direction, self.pieces.clone(), self.total_score());
   }
 
-  pub fn extend(&self, next_piece:Piece) -> Partial {
-    let mut extended_partial = self.clone();
-    extended_partial.pieces.push(next_piece);
-    extended_partial.last_square = self.direction.apply(self.last_square);
-    return extended_partial;
+  pub fn try_extend(&self, next_piece:Piece) -> Option<Partial> {
+    match self.main_validator {
+      None => None,
+      Some(ref lv) => {
+        match lv.clone_extend(next_piece) {
+          None => None,
+          Some(lv2) => {
+            let mut new_pieces = self.pieces.clone();
+            new_pieces.push(next_piece);
+            Some(Partial {
+              start_square: self.start_square,
+              direction: self.direction,
+              pieces: new_pieces,
+              mainline_score: self.mainline_score,
+              perp_scores: self.perp_scores,
+              last_square: self.direction.apply(self.last_square),
+              main_validator: Some(lv2),
+            })
+          }
+        }
+      }
+    }
   }
 }

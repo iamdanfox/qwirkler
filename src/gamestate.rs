@@ -73,16 +73,10 @@ impl GameState {
           Some(partial) => {
             if self.board.allows(partial, &self.players[self.turn].bag) {
               // put new partials back in
-              if let Some(ref lv) = partial.main_validator {
-                for &p in self.players[self.turn].bag.iter() {
-                  if lv.can_add(p) {
-                    let mut extended = partial.extend(p);
-                    if let Some(ref mut lv2) = extended.main_validator.as_mut() {
-                      assert!(lv2.add_piece(p));
-                    }
-                    queue.push_back(extended);
-
-                  }
+              for &p in self.players[self.turn].bag.iter() {
+                match partial.try_extend(p) {
+                  None => {},
+                  Some(extended) => queue.push_back(extended),
                 }
               }
 

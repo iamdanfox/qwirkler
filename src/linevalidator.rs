@@ -51,6 +51,16 @@ impl LineValidator {
     }
   }
 
+  pub fn clone_extend(&self, new_piece: Piece) -> Option<LineValidator> {
+    if self.can_add(new_piece) {
+      let mut lv2 = self.clone();
+      assert!(lv2.add_piece(new_piece)); // TODO optimise!
+      return Some(lv2)
+    } else {
+      return None
+    }
+  }
+
   pub fn add_piece(&mut self, new_piece: Piece) -> bool {
     if self.length == 6 || new_piece == self.first_piece {
       return false
