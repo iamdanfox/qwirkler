@@ -82,19 +82,21 @@ impl LineValidator {
   }
 
   pub fn add_piece(&mut self, new_piece: Piece) -> bool {
-    if self.length == 6 || new_piece == self.first_piece {
-      return false
-    }
-
     match self.is_line_of_colour {
       None => {
         if self.first_piece.colour == new_piece.colour {
+          if self.length == 6 || new_piece == self.first_piece {
+            return false
+          }
           self.is_line_of_colour = Some(true);
           self.seen_already[self.first_piece.shape.index()] = true;
           self.seen_already[new_piece.shape.index()] = true;
           self.length = self.length + 1;
           return true
         } else if self.first_piece.shape == new_piece.shape {
+          if self.length == 6 || new_piece == self.first_piece {
+            return false
+          }
           self.is_line_of_colour = Some(false);
           self.seen_already[self.first_piece.colour.index()] = true;
           self.seen_already[new_piece.colour.index()] = true;
@@ -109,9 +111,15 @@ impl LineValidator {
           if self.first_piece.colour != new_piece.colour || self.seen_already[new_piece.shape.index()] {
             return false
           }
+          if self.length == 6 || new_piece == self.first_piece {
+            return false
+          }
           self.seen_already[new_piece.shape.index()] = true;
         } else {
           if self.first_piece.shape != new_piece.shape || self.seen_already[new_piece.colour.index()] {
+            return false
+          }
+          if self.length == 6 || new_piece == self.first_piece {
             return false
           }
           self.seen_already[new_piece.colour.index()] = true;
