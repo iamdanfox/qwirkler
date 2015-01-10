@@ -61,6 +61,11 @@ impl LineValidator {
     }
   }
 
+  /// prevents any more extensions
+  pub fn seal(&mut self) {
+    self.length = 6;
+  }
+
   pub fn add_piece(&mut self, new_piece: Piece) -> bool {
     if self.length == 6 || new_piece == self.first_piece {
       return false

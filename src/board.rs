@@ -51,88 +51,43 @@ impl Board {
   }
 
   pub fn allows(&self, partial:&mut Partial, playerbag: &Bag) -> bool {
-    assert!(self.get(partial.last_square).is_none());
-
-    let last_piece = partial.pieces[partial.pieces.len()-1];
+    // assert!(self.get(partial.last_square).is_none()); // this is true because main_validator is sealed if this square is non-empty
 
     // since the prefix of this line was already passed validation,
     // we just need to check the last perpendicular.
     let mut new_perp_score = 0;
+    let last_piece = partial.pieces[partial.pieces.len()-1];
     match self.check_perpendicular(partial.last_square, &partial.direction, last_piece) {
-      None => {
-        // println!("perp");
-        return false // validation failed,
-      },
+      None => return false,
       Some(v) => new_perp_score = v
     };
 
-    let mut extendables:Vec<Piece> = Vec::new();
-    // if the partial already has a line validator, we can just extend it.  Otherwise, we must build the first one.
-    let (new_mainline_score, overwrite_validator):(Score, Option<LineValidator>) = match partial.main_validator.as_mut() {
-      None =>
-        // we must build the validator (this implies we have a singleton)
-        match self.check_first_mainline(partial.start_square, &partial.direction, partial.pieces[0]) {
-          None => {
-            // println!("b");
-            return false // validation failed
-          },
-          Some((score,line_validator)) => {
-            (score,Some(line_validator)) // this validator gets saved in the partial.
-          }
-        },
-      Some(lv) => {
-        // if the line doesn't end in a blank, we have to continue validating in that direction
-        let after_line = partial.direction.apply(partial.last_square);
-        if !self.get(after_line).is_none() {
-          if !self.continue_validating(after_line, &partial.direction, lv) {
-            // println!("x");
-            return false
-          }
+    // if we have no line validator, we must construct one and save it
+    if partial.main_validator.is_none() {
+      let mut first_lv = LineValidator::new(partial.pieces[0]);
+      for p in self.non_blank_iter(partial.start_square, partial.direction.opposite()) {
+        if !first_lv.add_piece(p) {
+          return false
         }
-        let score = lv.length + if lv.length == 6 { 6 } else { 0 };
-
-        (score, None) // no need to overwrite the validator.
       }
-    };
-    partial.mainline_score = new_mainline_score;
-    if !overwrite_validator.is_none() {
-      partial.main_validator = overwrite_validator;
+      partial.main_validator = Some(first_lv)
     }
-    partial.perp_scores += new_perp_score;
-    return true;
-  }
 
-  // returns None if it failed validation
-  fn check_first_mainline(&self, square:Square, direction:&Direction, first_piece:Piece) -> Option<(Score, LineValidator)> {
-    let mut first_lv = LineValidator::new(first_piece);
-    let mut count = 1;
-    for p in self.non_blank_iter(square, *direction).chain(self.non_blank_iter(square, direction.opposite())) {
-      if !first_lv.add_piece(p) {
-        return None
-      }
-      count += 1;
-    }
-    let first_mainline_score = count + if count == 6 { 6 } else { 0 };
-    return Some((first_mainline_score, first_lv))
-  }
-
-  fn continue_validating(&self, after_line:Square, direction: &Direction, lv: &mut LineValidator) -> bool {
-    let mut curr_square = after_line;
-    let mut curr_piece = self.get(curr_square);
-    loop {
-      match curr_piece {
-        None => return false,
-        Some(p) => {
+    if let Some(ref mut lv) = partial.main_validator.as_mut() {
+      if !self.get(partial.direction.apply(partial.last_square)).is_none() {
+        // the line doesn't end in a blank, we have to continue validating in that direction
+        for p in self.non_blank_iter(partial.last_square, partial.direction) {
           if !lv.add_piece(p) {
             return false
-          } else {
-            curr_square = direction.apply(curr_square);
-            curr_piece = self.get(curr_square);
           }
         }
+        lv.seal() // this also implies that this partial can't be extended
       }
+      partial.mainline_score = lv.length + if lv.length == 6 { 6 } else { 0 };
     }
-    return true
+
+    partial.perp_scores += new_perp_score;
+    return true;
   }
 
   // returns the score won from a perpendicular line or return None if it's invalid.
