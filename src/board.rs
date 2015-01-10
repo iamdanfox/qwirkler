@@ -9,7 +9,7 @@ use partial::Partial;
 use std::collections::HashSet;
 
 pub struct Board {
-  board: [[Piece; DIM_2]; DIM_2],
+  board: [[Option<Piece>; DIM_2]; DIM_2],
   perimeter: HashSet<Square>,
   min_x: isize,
   max_x: isize,
@@ -22,8 +22,7 @@ const DIM_2:usize = (2*DIM) as usize;
 
 impl Board {
   pub fn new() -> Board {
-    let blank = Piece::blank();
-    let new_board = [[blank; DIM_2]; DIM_2];
+    let new_board = [[None; DIM_2]; DIM_2];
     Board {
       board: new_board,
       perimeter: HashSet::new(),
@@ -55,7 +54,7 @@ impl Board {
 
     for &direction in Direction::all().iter() {
       for &sq in self.perimeter.iter() {
-        if self.get(direction.apply(sq)).is_blank() {
+        if self.get(direction.apply(sq)).is_none() {
           result.push((sq,direction));
         }
       }
@@ -68,7 +67,7 @@ impl Board {
   }
 
   pub fn allows(&self, partial:&mut Partial) -> bool {
-    if !self.get(partial.last_square).is_blank() {
+    if !self.get(partial.last_square).is_none() {
       return false
     }
     let last_piece = partial.pieces[partial.pieces.len()-1];
@@ -87,7 +86,7 @@ impl Board {
         }
         // if the line doesn't end in a blank, we have to continue validating in that direction
         let after_line = partial.direction.apply(partial.last_square);
-        if !self.get(after_line).is_blank() {
+        if !self.get(after_line).is_none() {
           if !self.continue_validating(after_line, &partial.direction, lv) {
             return false
           }
@@ -128,12 +127,17 @@ impl Board {
   fn continue_validating(&self, after_line:Square, direction: &Direction, lv: &mut LineValidator) -> bool {
     let mut curr_square = after_line;
     let mut curr_piece = self.get(curr_square);
-    while !curr_piece.is_blank() {
-      if !lv.add_piece(curr_piece) {
-        return false
-      } else {
-        curr_square = direction.apply(curr_square);
-        curr_piece = self.get(curr_square);
+    loop {
+      match curr_piece {
+        None => return false,
+        Some(p) => {
+          if !lv.add_piece(p) {
+            return false
+          } else {
+            curr_square = direction.apply(curr_square);
+            curr_piece = self.get(curr_square);
+          }
+        }
       }
     }
     return true
@@ -170,7 +174,7 @@ impl Board {
     // compute the new array
     let squares = direction.apply_all(start_sq, pieces.len());
     for (&(x,y),&piece) in squares.iter().zip(pieces.iter()) {
-      self.board[(x+DIM) as usize][(y+DIM) as usize] = piece;
+      self.board[(x+DIM) as usize][(y+DIM) as usize] = Some(piece);
     }
 
     // compute the new perimeter
@@ -188,7 +192,7 @@ impl Board {
     }
 
     for &sq in candidates.iter() {
-      if self.get(sq).is_blank() {
+      if self.get(sq).is_none() {
         self.perimeter.insert(sq);
       }
     }
@@ -198,7 +202,7 @@ impl Board {
     self.stretch_bounding_box(squares[pieces.len()-1]);
   }
 
-  pub fn get(&self, (x,y):Square) -> Piece {
+  pub fn get(&self, (x,y):Square) -> Option<Piece> {
     return self.board[(x+DIM) as usize][(y+DIM) as usize];
   }
 
@@ -216,11 +220,9 @@ impl core::fmt::String for Board {
 
     for y in (self.min_y - 1 .. self.max_y + 2) {
       for x in (self.min_x - 1 .. self.max_x + 2) {
-        let piece = self.get((x,y));
-        if !piece.is_blank() {
-          output.push_str(piece.to_string().as_slice());
-        } else {
-          output.push_str("..");
+        match self.get((x,y)) {
+          None => output.push_str(".."),
+          Some(p) => output.push_str(p.to_string().as_slice()),
         }
         output.push_str(" ");
       }
@@ -243,13 +245,7 @@ impl<'a> Iterator for NonBlankIterator<'a> {
   type Item = Piece;
 
   fn next(&mut self) -> Option<Piece> {
-    let next_sq = self.direction.apply(self.sq);
-    let contents = self.board.get(next_sq);
-    if contents.is_blank() {
-      return None
-    } else {
-      self.sq = next_sq;
-      return Some(contents)
-    }
+    self.sq = self.direction.apply(self.sq);
+    return self.board.get(self.sq);
   }
 }
