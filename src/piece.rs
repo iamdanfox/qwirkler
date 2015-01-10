@@ -4,12 +4,12 @@ use std::fmt;
 pub type Bag = Vec<Piece>;
 
 #[derive(Copy, Clone, PartialEq, Show)]
-enum Colour {
+pub enum Colour {
   R,O,Y,G,B,P
 }
 
 impl Colour {
-  fn index(&self) -> usize {
+  pub fn index(&self) -> usize {
     match *self {
       Colour::R => 0,
       Colour::O => 1,
@@ -22,12 +22,12 @@ impl Colour {
 }
 
 #[derive(Copy, Clone, PartialEq, Show)]
-enum Shape {
+pub enum Shape {
   A,B,C,D,E,F
 }
 
 impl Shape {
-  fn index(&self) -> usize {
+  pub fn index(&self) -> usize {
     match *self {
       Shape::A => 0,
       Shape::B => 1,
@@ -41,12 +41,12 @@ impl Shape {
 
 #[derive(Copy, Clone, PartialEq, Show)]
 pub struct Piece {
-  colour: Colour,
-  shape: Shape,
+  pub colour: Colour,
+  pub shape: Shape,
 }
 
 impl Piece {
-  fn new(colour: Colour, shape: Shape) -> Piece {
+  pub fn new(colour: Colour, shape: Shape) -> Piece {
     return Piece {
       colour: colour,
       shape: shape,

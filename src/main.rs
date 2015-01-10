@@ -17,10 +17,10 @@ fn main() {
       None => break,
       Some(chosen_move) => {
         game_state.apply_move(&chosen_move);
+        println!("{}", game_state.board);
       },
     }
   }
 
-  println!("{}", game_state.board);
   println!("Game finished, total score = {}\n", game_state.total_score());
 }
