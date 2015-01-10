@@ -21,6 +21,6 @@ fn main() {
     }
   }
 
-  // println!("{}", game_state.board); // need to implement core::fmt::String... (already have fmt::Show, this should be easy)
+  println!("{}", game_state.board);
   println!("Game finished, total score = {}\n", game_state.total_score());
 }

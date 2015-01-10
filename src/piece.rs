@@ -76,7 +76,7 @@ impl fmt::Show for Piece {
 
 pub fn make_bag() -> Bag {
   // this generates three copies of ij for i <- [1..6] and j <- [1..6]
-  return range(0, 108).map(|i| Piece::new(1 + (i % 6), 1 + ((i / 6) % 6))).collect();
+  return (0..108).map(|i| Piece::new(1 + (i % 6), 1 + ((i / 6) % 6))).collect();
 }
 
 pub fn resupply_player_mutate(player_bag: Bag, main_bag: &mut Bag) -> Bag {
@@ -89,10 +89,9 @@ pub fn resupply_player_mutate(player_bag: Bag, main_bag: &mut Bag) -> Bag {
   let num_to_take = 6 - player_bag.len();
   let mut player_bag2 = player_bag;
 
-  for _ in range(0, num_to_take) {
+  for _ in (0..num_to_take) {
     main_bag.pop().map(|piece| player_bag2.push(piece));
   }
 
   return player_bag2
 }
-

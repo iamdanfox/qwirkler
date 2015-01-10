@@ -1,3 +1,5 @@
+extern crate core;
+
 use piece::{Piece};
 use linevalidator::LineValidator;
 use direction::{Square, Direction};
@@ -5,7 +7,6 @@ use std::{fmt, string};
 use player::Score;
 use partial::Partial;
 use std::collections::HashSet;
-
 
 pub struct Board {
   board: [[Piece; DIM_2]; DIM_2],
@@ -209,12 +210,12 @@ impl Board {
   }
 }
 
-impl fmt::Show for Board {
-  fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+impl core::fmt::String for Board {
+  fn fmt(&self, formatter: &mut fmt::Formatter) -> Result<(),core::fmt::Error> {
     let mut output = string::String::new();
 
-    for y in range(self.min_y - 1, self.max_y + 2) {
-      for x in range(self.min_x - 1, self.max_x + 2) {
+    for y in (self.min_y - 1 .. self.max_y + 2) {
+      for x in (self.min_x - 1 .. self.max_x + 2) {
         let piece = self.get((x,y));
         if !piece.is_blank() {
           output.push_str(piece.to_string().as_slice());

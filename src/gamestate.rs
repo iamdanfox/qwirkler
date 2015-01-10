@@ -20,7 +20,7 @@ impl GameState {
   pub fn new(num_players: isize) -> GameState {
     let mut initial_bag = piece::make_bag();
 
-    let players = range(0, num_players).map( |_| {
+    let players = (0..num_players).map( |_| {
       let player_bag = piece::resupply_player_mutate(vec![], &mut initial_bag);
       PlayerState::new(player_bag)
     }).collect();
