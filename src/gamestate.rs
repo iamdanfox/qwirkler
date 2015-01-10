@@ -71,19 +71,25 @@ impl GameState {
         match queue.pop_front().as_mut() {
           None => break,
           Some(partial) => {
-            match self.board.allows(partial, &self.players[self.turn].bag) {
-              None => {},
-              Some(ps) => {
-                // put new partials back in
-                for &p in ps.iter() {
-                  queue.push_back(partial.extend(p));
-                }
+            if self.board.allows(partial, &self.players[self.turn].bag) {
+              // put new partials back in
+              if let Some(ref lv) = partial.main_validator {
+                for &p in self.players[self.turn].bag.iter() {
+                  if lv.can_add(p) {
+                    let mut extended = partial.extend(p);
+                    if let Some(ref mut lv2) = extended.main_validator.as_mut() {
+                      assert!(lv2.add_piece(p));
+                    }
+                    queue.push_back(extended);
 
-                // calculate full score and return move
-                if partial.total_score() > best_score {
-                  best_score = partial.total_score();
-                  best_move = partial.save_as_move();
+                  }
                 }
+              }
+
+              // calculate full score and return move
+              if partial.total_score() > best_score {
+                best_score = partial.total_score();
+                best_move = partial.save_as_move();
               }
             }
           }

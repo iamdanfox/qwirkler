@@ -50,11 +50,21 @@ impl Board {
     }
   }
 
-  pub fn allows(&self, partial:&mut Partial, playerbag: &Bag) -> Option<Vec<Piece>> {
-    if !self.get(partial.last_square).is_none() {
-      return None
-    }
+  pub fn allows(&self, partial:&mut Partial, playerbag: &Bag) -> bool {
+    assert!(self.get(partial.last_square).is_none());
+
     let last_piece = partial.pieces[partial.pieces.len()-1];
+
+    // since the prefix of this line was already passed validation,
+    // we just need to check the last perpendicular.
+    let mut new_perp_score = 0;
+    match self.check_perpendicular(partial.last_square, &partial.direction, last_piece) {
+      None => {
+        println!("perp");
+        return false // validation failed,
+      },
+      Some(v) => new_perp_score = v
+    };
 
     let mut extendables:Vec<Piece> = Vec::new();
     // if the partial already has a line validator, we can just extend it.  Otherwise, we must build the first one.
@@ -62,30 +72,25 @@ impl Board {
       None =>
         // we must build the validator (this implies we have a singleton)
         match self.check_first_mainline(partial.start_square, &partial.direction, partial.pieces[0]) {
-          None => return None, // validation failed
+          None => {
+            println!("b");
+            return false // validation failed
+          },
           Some((score,line_validator)) => {
-            for &p in playerbag.iter().filter(|&&p| line_validator.can_add(p)) {
-              extendables.push(p);
-            }
             (score,Some(line_validator)) // this validator gets saved in the partial.
           }
         },
       Some(lv) => {
-        if !lv.add_piece(last_piece) {
-          return None
-        }
         // if the line doesn't end in a blank, we have to continue validating in that direction
         let after_line = partial.direction.apply(partial.last_square);
         if !self.get(after_line).is_none() {
           if !self.continue_validating(after_line, &partial.direction, lv) {
-            return None
+            println!("x");
+            return false
           }
         }
         let score = lv.length + if lv.length == 6 { 6 } else { 0 };
 
-        for &p in playerbag.iter().filter(|&&p| lv.can_add(p)) {
-          extendables.push(p);
-        }
         (score, None) // no need to overwrite the validator.
       }
     };
@@ -93,15 +98,8 @@ impl Board {
     if !overwrite_validator.is_none() {
       partial.main_validator = overwrite_validator;
     }
-
-    // since the prefix of this line was already passed validation,
-    // we just need to check the last perpendicular.
-    partial.perp_scores += match self.check_perpendicular(partial.last_square, &partial.direction, last_piece) {
-      None => return None, // validation failed,
-      Some(v) => v
-    };
-
-    return Some(extendables);
+    partial.perp_scores += new_perp_score;
+    return true;
   }
 
   // returns None if it failed validation
