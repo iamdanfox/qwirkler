@@ -3,26 +3,25 @@ use std::fmt;
 pub type Square = (isize,isize);
 
 #[derive(Copy,PartialEq,Clone)]
-pub struct Direction {
-  internal: u8
+pub enum Direction {
+  U,D,L,R
 }
 
 impl fmt::Show for Direction {
   fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
     (match *self {
-      U => "U",
-      D => "D",
-      L => "L",
-      R => "R",
-      _ => "X"
+      Direction::U => "U",
+      Direction::D => "D",
+      Direction::L => "L",
+      Direction::R => "R",
     }).fmt(formatter)
   }
 }
 
-const U:Direction = Direction { internal: 0b0000_0011 };
-const D:Direction = Direction { internal: 0b0000_0000 };
-const L:Direction = Direction { internal: 0b0000_0010 };
-const R:Direction = Direction { internal: 0b0000_0001 };
+const U:Direction = Direction::U;
+const D:Direction = Direction::D;
+const L:Direction = Direction::L;
+const R:Direction = Direction::R;
 
 impl Direction {
   pub fn apply(&self, (x,y): Square) -> Square {
@@ -31,21 +30,23 @@ impl Direction {
       D => (x, y-1),
       L => (x-1, y),
       R => (x+1, y),
-      _ => (x,y)
     }
   }
 
   pub fn opposite(&self) -> Direction {
-    return Direction {
-      internal: (0b1111_1111 ^ self.internal) & 0b0000_0011
-    };
+    match *self {
+      U => D,
+      D => U,
+      L => R,
+      R => L,
+    }
   }
 
   pub fn perpendiculars(&self) -> (Direction,Direction) {
-    let rot90 = Direction {
-      internal: self.internal ^ 0b0000_0001
-    };
-    return (rot90, rot90.opposite());
+    match *self {
+      U | D => (L,R),
+      L | R => (U,D),
+    }
   }
 
   pub fn apply_all(&self, sq: Square, len: usize) -> Vec<Square> {
