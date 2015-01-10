@@ -29,35 +29,50 @@ impl LineValidator {
     }
   }
 
-  pub fn can_add(&self, new_piece: Piece) -> bool {
+  pub fn clone_extend(&self, new_piece: Piece) -> Option<LineValidator> {
     if self.length == 6 || new_piece == self.first_piece {
-      return false
+      return None
     }
 
     match self.is_line_of_colour {
-      None => return self.first_piece.compatible_with(new_piece),
+      None => {
+        if self.first_piece.colour == new_piece.colour{
+          let mut lv2 = self.clone();
+          lv2.is_line_of_colour = Some(true);
+          lv2.seen_already[self.first_piece.shape.index()] = true;
+          lv2.seen_already[new_piece.shape.index()] = true;
+          lv2.length += 1;
+          return Some(lv2)
+        } else if self.first_piece.shape == new_piece.shape {
+          let mut lv2 = self.clone();
+          lv2.is_line_of_colour = Some(false);
+          lv2.seen_already[self.first_piece.colour.index()] = true;
+          lv2.seen_already[new_piece.colour.index()] = true;
+          lv2.length += 1;
+          return Some(lv2)
+        } else {
+          return None
+        }
+      }
       Some(loc) => {
         if loc {
           if self.first_piece.colour != new_piece.colour || self.seen_already[new_piece.shape.index()] {
-            return false
+            return None
           }
+          let mut lv2 = self.clone();
+          lv2.seen_already[new_piece.shape.index()] = true;
+          lv2.length += 1;
+          return Some(lv2)
         } else {
           if self.first_piece.shape != new_piece.shape || self.seen_already[new_piece.colour.index()] {
-            return false
+            return None
           }
+          let mut lv2 = self.clone();
+          lv2.seen_already[new_piece.colour.index()] = true;
+          lv2.length += 1;
+          return Some(lv2)
         }
-        return true
       }
-    }
-  }
-
-  pub fn clone_extend(&self, new_piece: Piece) -> Option<LineValidator> {
-    if self.can_add(new_piece) {
-      let mut lv2 = self.clone();
-      assert!(lv2.add_piece(new_piece)); // TODO optimise!
-      return Some(lv2)
-    } else {
-      return None
     }
   }
 

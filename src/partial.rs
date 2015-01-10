@@ -4,7 +4,6 @@ use player::Score;
 use direction::{Square, Direction};
 use mv::Move;
 
-#[derive(Clone)]
 pub struct Partial {
   pub start_square: Square,
   pub direction: Direction,
