@@ -66,7 +66,7 @@ impl GameState {
         match queue.pop_front().as_mut() {
           None => break,
           Some(partial) => {
-            if self.board.allows(partial, &self.players[self.turn].bag) {
+            if self.board.allows(partial) {
               // put new partials back in
               for &p in self.players[self.turn].bag.iter() {
                 match partial.try_extend(p) {

@@ -1,6 +1,6 @@
 extern crate core;
 
-use piece::{Piece, Bag};
+use piece::{Piece};
 use linevalidator::LineValidator;
 use direction::{Square, Direction};
 use std::{fmt, string};
@@ -50,7 +50,7 @@ impl Board {
     }
   }
 
-  pub fn allows(&self, partial:&mut Partial, playerbag: &Bag) -> bool {
+  pub fn allows(&self, partial:&mut Partial) -> bool {
     // assert!(self.get(partial.last_square).is_none()); // this is true because main_validator is sealed if this square is non-empty
 
     // since the prefix of this line was already passed validation,
