@@ -1,21 +1,9 @@
-use std::fmt;
 
 pub type Square = (isize,isize);
 
-#[derive(Copy,PartialEq,Clone,Eq)]
+#[derive(Copy,PartialEq,Clone,Eq,Debug)]
 pub enum Direction {
   U,D,L,R
-}
-
-impl fmt::Show for Direction {
-  fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-    (match *self {
-      Direction::U => "U",
-      Direction::D => "D",
-      Direction::L => "L",
-      Direction::R => "R",
-    }).fmt(formatter)
-  }
 }
 
 const U:Direction = Direction::U;

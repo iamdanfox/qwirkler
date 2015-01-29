@@ -153,8 +153,8 @@ impl Board {
   }
 }
 
-impl core::fmt::String for Board {
-  fn fmt(&self, formatter: &mut fmt::Formatter) -> Result<(),core::fmt::Error> {
+impl core::fmt::Display for Board {
+  fn fmt(&self, formatter: &mut fmt::Formatter) -> core::fmt::Result {
     let mut output = string::String::new();
 
     for y in (self.min_y - 1 .. self.max_y + 2) {
