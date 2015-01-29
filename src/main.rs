@@ -1,3 +1,9 @@
+// Unstable library features:
+#![feature(core)]
+#![feature(collections)]
+#![feature(rand)]
+#![feature(test)]
+
 use gamestate::GameState;
 
 mod piece;

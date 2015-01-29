@@ -3,7 +3,7 @@ use std::rand::{thread_rng, Rng};
 
 pub type Bag = Vec<Piece>;
 
-#[derive(Copy, Clone, PartialEq, Show, Eq)]
+#[derive(Copy, Clone, PartialEq, Debug, Eq)]
 pub enum Colour {
   R,O,Y,G,B,P
 }
@@ -21,7 +21,7 @@ impl Colour {
   }
 }
 
-#[derive(Copy, Clone, PartialEq, Show, Eq)]
+#[derive(Copy, Clone, PartialEq, Debug, Eq)]
 pub enum Shape {
   A,B,C,D,E,F
 }
@@ -39,7 +39,7 @@ impl Shape {
   }
 }
 
-#[derive(Copy, Clone, PartialEq, Show, Eq)]
+#[derive(Copy, Clone, PartialEq, Debug, Eq)]
 pub struct Piece {
   pub colour: Colour,
   pub shape: Shape,

@@ -6,7 +6,6 @@ use piece;
 use player::{PlayerState, Score};
 use std::collections::RingBuf;
 use std::mem;
-use std;
 
 pub struct GameState {
   pub board:   Board,
