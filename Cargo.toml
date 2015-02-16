@@ -3,3 +3,6 @@
 name = "qwirkler"
 version = "0.0.1"
 authors = ["Dan Fox <iamdanfox@gmail.com>"]
+
+[dependencies]
+rand = "0.1"

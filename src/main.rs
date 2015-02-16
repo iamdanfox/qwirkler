@@ -1,8 +1,9 @@
 // Unstable library features:
 #![feature(core)]
 #![feature(collections)]
-#![feature(rand)]
 #![feature(test)]
+
+extern crate rand;
 
 use gamestate::GameState;
 
