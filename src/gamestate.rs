@@ -4,7 +4,7 @@ use partial::Partial;
 use piece::{Bag};
 use piece;
 use player::{PlayerState, Score};
-use std::collections::RingBuf;
+use std::collections::VecDeque;
 use std::mem;
 
 pub struct GameState {
@@ -41,9 +41,9 @@ impl GameState {
     let mut best_score = 0;
     let mut best_move = Move::SwapPieces;
 
-    // We use a RingBuf as a queue to test increasingly long sequences of pieces
+    // We use a VecDeque as a queue to test increasingly long sequences of pieces
     // without repeating any validation or scoring work we did testing the prefixes.
-    let mut queue:RingBuf<Partial> = RingBuf::new();
+    let mut queue:VecDeque<Partial> = VecDeque::new();
 
     // Invariants for every partial in the queue:
     //  * every prefix of partial.pieces has already been validated (so we just need to check the last piece)
