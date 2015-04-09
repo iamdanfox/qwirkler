@@ -1,5 +1,3 @@
-extern crate core;
-
 use piece::{Piece};
 use linevalidator::LineValidator;
 use direction::{Square, Direction};
@@ -153,15 +151,15 @@ impl Board {
   }
 }
 
-impl core::fmt::Display for Board {
-  fn fmt(&self, formatter: &mut fmt::Formatter) -> core::fmt::Result {
+impl fmt::Display for Board {
+  fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
     let mut output = string::String::new();
 
     for y in (self.min_y - 1 .. self.max_y + 2) {
       for x in (self.min_x - 1 .. self.max_x + 2) {
         match self.get((x,y)) {
           None => output.push_str(".."),
-          Some(p) => output.push_str(p.to_string().as_slice()),
+          Some(p) => output.push_str(p.to_string().as_ref()),
         }
         output.push_str(" ");
       }

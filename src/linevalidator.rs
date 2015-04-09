@@ -1,6 +1,6 @@
 use piece::{Piece, Colour, Shape};
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub struct LineValidator {
   seen_already:      [bool; 6],
   first_piece:       Piece,

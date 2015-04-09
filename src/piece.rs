@@ -55,8 +55,8 @@ impl Piece {
 
   pub fn to_string(&self) -> String {
     let mut s = String::new();
-    s.push_str((1+self.colour.index()).to_string().as_slice());
-    s.push_str((1+self.shape.index()).to_string().as_slice());
+    s.push_str((1+self.colour.index()).to_string().as_ref());
+    s.push_str((1+self.shape.index()).to_string().as_ref());
     return s;
   }
 }
