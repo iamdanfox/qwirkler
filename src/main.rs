@@ -1,7 +1,6 @@
 // Unstable library features:
 #![feature(collections)]
 #![feature(test)]
-#![feature(custom_attribute)]
 #![feature(convert)]
 
 extern crate rand;
