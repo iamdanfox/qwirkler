@@ -6,6 +6,21 @@ use player::Score;
 use partial::Partial;
 use std::collections::HashSet;
 
+
+/// The representation of an arrangement of Qwirkle pieces.
+/// Designed to be mutated.  Only one `Board` needed for a game of qwirkle.
+///
+/// # Redundancy
+///
+/// Technically, the `board` array uniquely defines the arrangement of Qwirkle pieces.
+/// Nonetheless, the `perimeter` and bounding information is stored here so that it doesn't
+/// have to be recomputed for every move.
+///
+/// # Invariants
+///
+/// * The `perimeter` hashset stores free locations that are adjacent to an occupied square
+/// * The `min_x`, `max_x` etc variables define a bounding box for the whole game's arrangement
+/// of pieces. (Coordinates are inclusive)
 pub struct Board {
   board:     [[Option<Piece>; DIM_2]; DIM_2],
   perimeter: HashSet<Square>,
@@ -15,6 +30,8 @@ pub struct Board {
   max_y:     isize,
 }
 
+/// This constant determines the size of array we allocate for one `Board`.  Theoretically, you could
+/// easily overflow this, but in practise, 25 squares in any direction seems to work.
 const DIM:isize = 25;
 const DIM_2:usize = (2*DIM) as usize;
 
@@ -48,6 +65,14 @@ impl Board {
     }
   }
 
+  /// allows() returns `true` iff the supplied `partial` play is legal for this board.
+  ///
+  /// Preconditions:
+  ///  * The last square that `partial` would write into must be empty
+  ///  * The prefix of partial (ie everything except the last piece) must have already been validated
+  ///
+  /// Postconditions:
+  /// Mutates the argument `partial` by populating the `perp_scores` and `mainline_scores` fields and `main_validator` if necessary.
   pub fn allows(&self, partial:&mut Partial) -> bool {
     // assert!(self.get(partial.last_square).is_none()); // this is true because main_validator is sealed if this square is non-empty
 
@@ -105,6 +130,9 @@ impl Board {
     }
   }
 
+  /// Beginning at `start_sq`, place `pieces` onto the board in the specified `direction`.
+  /// Preconditions:
+  /// The start_sq, direction and pieces must describe a legal move according to the rules of qwirkle.
   pub fn put(&mut self, start_sq: Square, direction: &Direction, pieces: &Vec<Piece>) {
     // compute the new array
     let squares = direction.apply_all(start_sq, pieces.len());
@@ -170,8 +198,12 @@ impl fmt::Display for Board {
 }
 
 
-// this allows us to lazily lookup pieces from the board (validating them as we go)
-// this doubled the overall speed!
+/// Lazily lookup pieces from the board
+///
+/// From a specified start square and direction, this iterator will advance one square in the direction
+/// and return the board's contents (either `Some(piece)` or `None`).
+///
+/// Note, the iterator will not return the contents of the start square
 pub struct NonBlankIterator<'a> {
   sq:        Square,
   direction: Direction,
