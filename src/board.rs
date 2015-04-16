@@ -87,6 +87,7 @@ impl Board {
     // if we have no line validator, we must construct one and save it
     if partial.main_validator.is_none() {
       let mut first_lv = LineValidator::new(partial.pieces[0]);
+      // TODO: maybe re-express this whole pattern as a fold?
       if !first_lv.extend_from_iter(&mut self.non_blank_iter(partial.start_square, partial.direction.opposite())) {
         return false
       }

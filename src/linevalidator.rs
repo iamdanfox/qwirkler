@@ -71,7 +71,22 @@ impl LineValidator {
     self.length = 6;
   }
 
-  pub fn add_piece(&mut self, new_piece: Piece) -> bool {
+  /// Build up a LineValidator by consuming an iterator of `Piece`.
+  /// Each successive piece must be valid, otherwise the function fails and returns false.
+  pub fn extend_from_iter<'a, T: Iterator<Item=Piece>>(&mut self, iter: &mut T) -> bool{
+    loop {
+      match iter.next() {
+        None => return true,
+        Some(new_piece) =>  {
+          if !self.add_piece(new_piece) {
+            return false
+          }
+        }
+      }
+    }
+  }
+
+  fn add_piece(&mut self, new_piece: Piece) -> bool {
     match self.is_line_of_colour {
       None => {
         if self.first_piece.colour == new_piece.colour {
@@ -116,19 +131,6 @@ impl LineValidator {
         }
         self.length = self.length + 1;
         return true
-      }
-    }
-  }
-
-  pub fn extend_from_iter<'a, T: Iterator<Item=Piece>>(&mut self, iter: &mut T) -> bool{
-    loop {
-      match iter.next() {
-        None => return true,
-        Some(p) =>  {
-          if !self.add_piece(p) {
-            return false
-          }
-        }
       }
     }
   }
@@ -181,7 +183,7 @@ fn test_change_common_feature() {
   let p1 = Piece::new(Colour::R, Shape::A);
   let p2 = Piece::new(Colour::G, Shape::A);
   let p3 = Piece::new(Colour::G, Shape::B);
-  let mut lv = LineValidator::new(p1);
-  lv.add_piece(p2);
-  assert!(lv.add_piece(p3));
+  let lv = LineValidator::new(p1);
+  let lv2 = lv.clone_extend(p2).unwrap();
+  assert!(lv2.clone_extend(p3).is_some());
 }
