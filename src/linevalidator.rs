@@ -158,27 +158,30 @@ fn test_add_same_shape() {
 }
 
 #[test]
+#[should_panic]
 fn test_add_identical_fail() {
   let p1 = Piece::new(Colour::R, Shape::A);
   let mut lv = LineValidator::new(p1);
-  assert_eq!(lv.add_piece(p1), false);
+  assert!(lv.add_piece(p1));
 }
 
 #[test]
+#[should_panic]
 fn test_duplicate_first() {
   let p1 = Piece::new(Colour::R, Shape::A);
   let p2 = Piece::new(Colour::G, Shape::A);
   let mut lv = LineValidator::new(p1);
   lv.add_piece(p2);
-  assert_eq!(lv.add_piece(p1), false);
+  assert!(lv.add_piece(p1));
 }
 
 #[test]
+#[should_panic]
 fn test_change_common_feature() {
   let p1 = Piece::new(Colour::R, Shape::A);
   let p2 = Piece::new(Colour::G, Shape::A);
   let p3 = Piece::new(Colour::G, Shape::B);
   let mut lv = LineValidator::new(p1);
   lv.add_piece(p2);
-  assert_eq!(lv.add_piece(p3), false);
+  assert!(lv.add_piece(p3));
 }
