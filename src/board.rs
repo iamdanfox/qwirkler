@@ -34,8 +34,8 @@ impl Board {
   pub fn get_start_squares(&self) -> Vec<(Square, Direction)> {
     let mut result: Vec<(Square, Direction)> = Vec::new();
 
-    for &direction in Direction::all().iter() {
-      for &sq in self.perimeter.iter() {
+    for &direction in &Direction::all() {
+      for &sq in &self.perimeter {
         if self.get(direction.apply(sq)).is_none() {
           result.push((sq,direction));
         }
@@ -113,7 +113,7 @@ impl Board {
     }
 
     // compute the new perimeter
-    for sq in squares.iter() {
+    for sq in &squares {
       self.perimeter.remove(sq);
     }
 
@@ -123,12 +123,12 @@ impl Board {
     }
     candidates.push(direction.opposite().apply(start_sq));
     let (d1,d2) = direction.perpendiculars();
-    for &sq in squares.iter() {
+    for &sq in &squares {
       candidates.push(d1.apply(sq));
       candidates.push(d2.apply(sq));
     }
 
-    for &sq in candidates.iter() {
+    for &sq in &candidates {
       if self.get(sq).is_none() {
         self.perimeter.insert(sq);
       }

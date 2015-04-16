@@ -64,8 +64,8 @@ impl Piece {
 pub fn make_bag() -> Bag {
   // this generates three copies of ij for i <- [1..6] and j <- [1..6]
   let mut res = vec![];
-  for &c in vec![Colour::R, Colour::O, Colour::Y, Colour::G, Colour::B, Colour::P].iter() {
-    for &s in vec![Shape::A, Shape::B, Shape::C, Shape::D, Shape::E, Shape::F].iter() {
+  for &c in &vec![Colour::R, Colour::O, Colour::Y, Colour::G, Colour::B, Colour::P] {
+    for &s in &vec![Shape::A, Shape::B, Shape::C, Shape::D, Shape::E, Shape::F] {
       for _ in (0..3) {
         res.push(Piece::new(c,s));
       }

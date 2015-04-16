@@ -55,9 +55,9 @@ impl GameState {
     //    this play would form.
 
     // figure out possible start squares (and directions).
-    for &(square, ref direction) in self.board.get_start_squares().iter() {
+    for &(square, ref direction) in &self.board.get_start_squares() {
       // initialize queue with singletons
-      for &piece in self.players[self.turn].bag.iter() {
+      for &piece in &self.players[self.turn].bag {
         queue.push_back(Partial::new(square, direction, piece));
       }
       // figure out any possible moves starting at this start square and direction, add to `moves`
@@ -67,7 +67,7 @@ impl GameState {
           Some(partial) => {
             if self.board.allows(partial) {
               // put new partials back in
-              for &p in self.players[self.turn].bag.iter() {
+              for &p in &self.players[self.turn].bag {
                 match partial.try_extend(p) {
                   None => {},
                   Some(extended) => queue.push_back(extended),
