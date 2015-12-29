@@ -74,9 +74,21 @@ pub fn make_bag() -> Bag {
   return res;
 }
 
+pub fn resupply_player_mutate(player_bag: &mut Bag, main_bag: &mut Bag) {
+  {
+    let mut rng = thread_rng();
+    let slice = main_bag.as_mut_slice();
+    rng.shuffle(slice);
+  }
+  let num_to_take = 6 - player_bag.len();
+  for _ in 0..num_to_take {
+    main_bag.pop().map(|piece| player_bag.push(piece));
+  }
+}
+
 #[test]
 fn make_bag_should_produce_108_pieces() {
-    assert!(make_bag().iter().count() == 108);
+    assert!(make_bag().len() == 108);
 }
 
 #[test]
@@ -91,14 +103,38 @@ fn make_bag_should_produce_3_red_shape_a() {
         .count() == 3);
 }
 
-pub fn resupply_player_mutate(player_bag: &mut Bag, main_bag: &mut Bag) {
-  {
-    let mut rng = thread_rng();
-    let slice = main_bag.as_mut_slice();
-    rng.shuffle(slice);
-  }
-  let num_to_take = 6 - player_bag.len();
-  for _ in 0..num_to_take {
-    main_bag.pop().map(|piece| player_bag.push(piece));
-  }
+#[test]
+fn resupply_should_not_change_anything_if_player_has_6_pieces() {
+    let mut player_bag = vec![
+        Piece::new(Colour::R, Shape::A),
+        Piece::new(Colour::O, Shape::B),
+        Piece::new(Colour::Y, Shape::C),
+        Piece::new(Colour::G, Shape::D),
+        Piece::new(Colour::B, Shape::E),
+        Piece::new(Colour::P, Shape::F)];
+    let mut main_bag = make_bag();
+    resupply_player_mutate(&mut player_bag, &mut main_bag);
+    assert!(main_bag.len() == 108);
+}
+
+#[test]
+fn resupply_should_deplete_main_bag_if_player_has_5_pieces() {
+    let mut player_bag = vec![
+        Piece::new(Colour::R, Shape::A),
+        Piece::new(Colour::O, Shape::B),
+        Piece::new(Colour::Y, Shape::C),
+        Piece::new(Colour::G, Shape::D),
+        Piece::new(Colour::B, Shape::E)];
+    let mut main_bag = vec![Piece::new(Colour::P, Shape::F)];
+    resupply_player_mutate(&mut player_bag, &mut main_bag);
+    assert!(main_bag.len() == 0);
+    assert!(player_bag.len() == 6);
+}
+#[test]
+fn resupply_should_handle_empties_gracefully() {
+    let mut player_bag = vec![];
+    let mut main_bag = vec![];
+    resupply_player_mutate(&mut player_bag, &mut main_bag);
+    assert!(main_bag.len() == 0);
+    assert!(player_bag.len() == 0);
 }
