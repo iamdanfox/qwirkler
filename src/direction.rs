@@ -40,7 +40,7 @@ impl Direction {
   pub fn apply_all(&self, sq: Square, len: usize) -> Vec<Square> {
     let mut squares = vec![];
     let mut last = sq;
-    for _ in (0..len) {
+    for _ in 0..len {
       squares.push(last);
       last = self.apply(last);
     }

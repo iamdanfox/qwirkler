@@ -66,7 +66,7 @@ pub fn make_bag() -> Bag {
   let mut res = vec![];
   for &c in &vec![Colour::R, Colour::O, Colour::Y, Colour::G, Colour::B, Colour::P] {
     for &s in &vec![Shape::A, Shape::B, Shape::C, Shape::D, Shape::E, Shape::F] {
-      for _ in (0..3) {
+      for _ in 0..3 {
         res.push(Piece::new(c,s));
       }
     }
@@ -81,7 +81,7 @@ pub fn resupply_player_mutate(player_bag: &mut Bag, main_bag: &mut Bag) {
     rng.shuffle(slice);
   }
   let num_to_take = 6 - player_bag.len();
-  for _ in (0..num_to_take) {
+  for _ in 0..num_to_take {
     main_bag.pop().map(|piece| player_bag.push(piece));
   }
 }
