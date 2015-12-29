@@ -74,6 +74,23 @@ pub fn make_bag() -> Bag {
   return res;
 }
 
+#[test]
+fn make_bag_should_produce_108_pieces() {
+    assert!(make_bag().iter().count() == 108);
+}
+
+#[test]
+fn make_bag_should_produce_18_red_pieces() {
+    assert!(make_bag().iter().filter(|&piece| piece.colour == Colour::R).count() == 18);
+}
+
+#[test]
+fn make_bag_should_produce_3_red_shape_a() {
+    assert!(make_bag().iter()
+        .filter(|&piece| piece.colour == Colour::R && piece.shape == Shape::A)
+        .count() == 3);
+}
+
 pub fn resupply_player_mutate(player_bag: &mut Bag, main_bag: &mut Bag) {
   {
     let mut rng = thread_rng();
