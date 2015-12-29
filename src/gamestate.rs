@@ -101,7 +101,7 @@ impl GameState {
       },
       &Move::SwapPieces => {
         let oldbag = mem::replace(&mut self.players[self.turn].bag, vec![]);
-        self.bag.push_all(oldbag.as_slice());
+        self.bag.extend_from_slice(oldbag.as_slice());
         piece::resupply_player_mutate(&mut self.players[self.turn].bag, &mut self.bag);
       },
     }

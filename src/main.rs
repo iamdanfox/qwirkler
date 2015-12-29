@@ -1,5 +1,4 @@
 // Unstable library features:
-#![feature(collections)]
 #![feature(test)]
 #![feature(convert)]
 
