@@ -1,6 +1,6 @@
 language: rust
 rust:
-  - 1.7.0-nightly
+  - nightly-2015-12-27
   - nightly
 notifications:
   on_success: change
