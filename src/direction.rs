@@ -1,57 +1,60 @@
 
-pub type Square = (isize,isize);
+pub type Square = (isize, isize);
 
 #[derive(Copy,PartialEq,Clone,Eq,Debug)]
 pub enum Direction {
-  U,D,L,R
+    U,
+    D,
+    L,
+    R,
 }
 
-const U:Direction = Direction::U;
-const D:Direction = Direction::D;
-const L:Direction = Direction::L;
-const R:Direction = Direction::R;
+const U: Direction = Direction::U;
+const D: Direction = Direction::D;
+const L: Direction = Direction::L;
+const R: Direction = Direction::R;
 
 impl Direction {
-  pub fn apply(&self, (x,y): Square) -> Square {
-    match *self {
-      U => (x, y+1),
-      D => (x, y-1),
-      L => (x-1, y),
-      R => (x+1, y),
+    pub fn apply(&self, (x, y): Square) -> Square {
+        match *self {
+            U => (x, y + 1),
+            D => (x, y - 1),
+            L => (x - 1, y),
+            R => (x + 1, y),
+        }
     }
-  }
 
-  pub fn opposite(&self) -> Direction {
-    match *self {
-      U => D,
-      D => U,
-      L => R,
-      R => L,
+    pub fn opposite(&self) -> Direction {
+        match *self {
+            U => D,
+            D => U,
+            L => R,
+            R => L,
+        }
     }
-  }
 
-  pub fn perpendiculars(&self) -> (Direction,Direction) {
-    match *self {
-      U | D => (L,R),
-      L | R => (U,D),
+    pub fn perpendiculars(&self) -> (Direction, Direction) {
+        match *self {
+            U | D => (L, R),
+            L | R => (U, D),
+        }
     }
-  }
 
-  pub fn apply_all(&self, sq: Square, len: usize) -> Vec<Square> {
-    let mut squares = vec![];
-    let mut last = sq;
-    for _ in 0..len {
-      squares.push(last);
-      last = self.apply(last);
+    pub fn apply_all(&self, sq: Square, len: usize) -> Vec<Square> {
+        let mut squares = vec![];
+        let mut last = sq;
+        for _ in 0..len {
+            squares.push(last);
+            last = self.apply(last);
+        }
+        return squares;
     }
-    return squares
-  }
 
-  pub fn all() -> Vec<Direction> {
-    return vec![U,D,L,R]
-  }
+    pub fn all() -> Vec<Direction> {
+        return vec![U, D, L, R];
+    }
 
-  pub fn initial() -> Direction {
-    return R
-  }
+    pub fn initial() -> Direction {
+        return R;
+    }
 }

@@ -17,16 +17,17 @@ mod linevalidator;
 mod mv;
 
 fn main() {
-  let mut game_state = GameState::new(2);
-  loop {
-    match game_state.generate_best_move() {
-      None => break,
-      Some(chosen_move) => {
-        game_state.apply_move(&chosen_move);
-      },
+    let mut game_state = GameState::new(2);
+    loop {
+        match game_state.generate_best_move() {
+            None => break,
+            Some(chosen_move) => {
+                game_state.apply_move(&chosen_move);
+            }
+        }
     }
-  }
 
-  println!("{}", game_state.board);
-  println!("Game finished, total score = {}\n", game_state.total_score());
+    println!("{}", game_state.board);
+    println!("Game finished, total score = {}\n",
+             game_state.total_score());
 }
